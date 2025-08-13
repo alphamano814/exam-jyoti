@@ -1,0 +1,173 @@
+import { useState } from "react";
+import { Header } from "./Header";
+import { BottomNavigation } from "./BottomNavigation";
+import { HomePage } from "./HomePage";
+import { MCQPage } from "./MCQPage";
+import { Card, CardContent } from "@/components/ui/card";
+import { Trophy, Calendar, User, BookOpen } from "lucide-react";
+
+export const NepalMCQApp = () => {
+  const [activeTab, setActiveTab] = useState("home");
+  const [language, setLanguage] = useState<"en" | "np">("en");
+
+  const handleLanguageToggle = () => {
+    setLanguage(prev => prev === "en" ? "np" : "en");
+  };
+
+  const handleNavigate = (page: string) => {
+    setActiveTab(page);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "home":
+        return <HomePage language={language} onNavigate={handleNavigate} />;
+      case "mcqs":
+        return <MCQPage language={language} onNavigate={handleNavigate} />;
+      case "daily-quiz":
+        return <DailyQuizPage language={language} />;
+      case "leaderboard":
+        return <LeaderboardPage language={language} />;
+      case "profile":
+        return <ProfilePage language={language} />;
+      default:
+        return <HomePage language={language} onNavigate={handleNavigate} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header 
+        language={language}
+        onLanguageToggle={handleLanguageToggle}
+        username="Student"
+      />
+      
+      <main className="px-4 py-6 max-w-md mx-auto">
+        {renderContent()}
+      </main>
+
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+    </div>
+  );
+};
+
+// Placeholder components for other pages
+const DailyQuizPage = ({ language }: { language: "en" | "np" }) => (
+  <div className="text-center space-y-4 pb-20">
+    <Card className="glass p-8">
+      <CardContent className="space-y-4">
+        <Calendar size={48} className="mx-auto text-nepal-gold" />
+        <h2 className="text-2xl font-bold">
+          {language === "en" ? "Daily Quiz" : "दैनिक क्विज"}
+        </h2>
+        <p className="text-muted-foreground nepali-text">
+          {language === "en" 
+            ? "Today's challenge: 10 questions from mixed categories" 
+            : "आजको चुनौती: मिश्रित श्रेणीबाट १० प्रश्न"}
+        </p>
+        <div className="text-3xl font-bold text-primary">05:30</div>
+        <p className="text-sm text-muted-foreground">
+          {language === "en" ? "Time remaining to start today's quiz" : "आजको क्विज सुरु गर्न बाँकी समय"}
+        </p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const LeaderboardPage = ({ language }: { language: "en" | "np" }) => (
+  <div className="space-y-4 pb-20">
+    <div className="text-center space-y-2">
+      <Trophy size={48} className="mx-auto text-nepal-gold" />
+      <h2 className="text-2xl font-bold">
+        {language === "en" ? "Leaderboard" : "लिडरबोर्ड"}
+      </h2>
+      <p className="text-muted-foreground nepali-text">
+        {language === "en" ? "Top performers this week" : "यस हप्ताका शीर्ष प्रदर्शनकर्ताहरू"}
+      </p>
+    </div>
+
+    <div className="space-y-3">
+      {[1, 2, 3, 4, 5].map((rank) => (
+        <Card key={rank} className="glass">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+              rank === 1 ? "gradient-nepal" : rank === 2 ? "gradient-sunset" : rank === 3 ? "gradient-success" : "bg-muted"
+            }`}>
+              {rank}
+            </div>
+            <div className="flex-1">
+              <div className="font-medium">Student {rank}</div>
+              <div className="text-sm text-muted-foreground">
+                {950 - rank * 50} {language === "en" ? "points" : "अंक"}
+              </div>
+            </div>
+            {rank <= 3 && <Trophy size={20} className="text-nepal-gold" />}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
+const ProfilePage = ({ language }: { language: "en" | "np" }) => (
+  <div className="space-y-6 pb-20">
+    <div className="text-center space-y-4">
+      <div className="w-24 h-24 rounded-full gradient-nepal flex items-center justify-center text-white text-3xl font-bold mx-auto">
+        S
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold">Student</h2>
+        <p className="text-muted-foreground">
+          {language === "en" ? "Exam Aspirant" : "परीक्षा आकांक्षी"}
+        </p>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-4">
+      <Card className="glass text-center">
+        <CardContent className="p-4">
+          <div className="text-2xl font-bold text-primary">87</div>
+          <div className="text-sm text-muted-foreground nepali-text">
+            {language === "en" ? "Quizzes Completed" : "पूरा गरिएका क्विज"}
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="glass text-center">
+        <CardContent className="p-4">
+          <div className="text-2xl font-bold text-success">94%</div>
+          <div className="text-sm text-muted-foreground nepali-text">
+            {language === "en" ? "Accuracy Rate" : "सटीकता दर"}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card className="glass">
+      <CardContent className="p-6 space-y-4">
+        <h3 className="text-lg font-semibold nepali-text">
+          {language === "en" ? "Study Progress" : "अध्ययन प्रगति"}
+        </h3>
+        <div className="space-y-3">
+          {["Lok Sewa", "SEE", "General Knowledge"].map((subject, index) => (
+            <div key={subject} className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>{subject}</span>
+                <span>{85 - index * 10}%</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full">
+                <div 
+                  className="h-full gradient-nepal rounded-full"
+                  style={{ width: `${85 - index * 10}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);

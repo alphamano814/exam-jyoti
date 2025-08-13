@@ -1,0 +1,170 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { BookOpen, Calendar, Trophy, Users, Clock, MapPin } from "lucide-react";
+import heroBanner from "@/assets/hero-banner.jpg";
+
+interface HomePageProps {
+  language: "en" | "np";
+  onNavigate: (page: string) => void;
+}
+
+const motivationalQuotes = {
+  en: [
+    "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    "The future belongs to those who believe in the beauty of their dreams.",
+    "Education is the passport to the future, for tomorrow belongs to those who prepare for it today.",
+    "Your limitation—it's only your imagination."
+  ],
+  np: [
+    "सफलता अन्तिम होइन, असफलता घातक होइन: निरन्तरता नै मुख्य कुरा हो।",
+    "सपनाको सुन्दरतामा विश्वास गर्नेहरूको भविष्य हो।",
+    "शिक्षा भविष्यको राहदानी हो, भोलि तयार हुनेहरूको हो।",
+    "तपाईंको सीमा - यो केवल तपाईंको कल्पना हो।"
+  ]
+};
+
+const quickActions = {
+  en: [
+    { icon: BookOpen, label: "Start Quiz", description: "Begin your practice", action: "mcqs", color: "nepal" },
+    { icon: Calendar, label: "Daily Challenge", description: "Today's special quiz", action: "daily-quiz", color: "gold" },
+    { icon: Trophy, label: "Leaderboard", description: "Check your ranking", action: "leaderboard", color: "success" },
+    { icon: Users, label: "Study Groups", description: "Join other students", action: "groups", color: "category" },
+  ],
+  np: [
+    { icon: BookOpen, label: "क्विज सुरु गर्नुहोस्", description: "अभ्यास सुरु गर्नुहोस्", action: "mcqs", color: "nepal" },
+    { icon: Calendar, label: "दैनिक चुनौती", description: "आजको विशेष क्विज", action: "daily-quiz", color: "gold" },
+    { icon: Trophy, label: "लिडरबोर्ड", description: "तपाईंको स्थान हेर्नुहोस्", action: "leaderboard", color: "success" },
+    { icon: Users, label: "अध्ययन समूह", description: "अन्य विद्यार्थीहरूसँग जोडिनुहोस्", action: "groups", color: "category" },
+  ]
+};
+
+const upcomingExams = {
+  en: [
+    { name: "Lok Sewa - Officer Level", date: "March 15, 2024", type: "Government" },
+    { name: "SEE Examination", date: "April 20, 2024", type: "School Level" },
+    { name: "Banking Service", date: "May 10, 2024", type: "Financial" },
+  ],
+  np: [
+    { name: "लोक सेवा - अधिकृत तह", date: "मार्च १५, २०२४", type: "सरकारी" },
+    { name: "एसईई परीक्षा", date: "अप्रिल २०, २०२४", type: "विद्यालय तह" },
+    { name: "बैंकिङ सेवा", date: "मे १०, २०२४", type: "वित्तीय" },
+  ]
+};
+
+export const HomePage = ({ language, onNavigate }: HomePageProps) => {
+  const currentQuote = motivationalQuotes[language][Math.floor(Math.random() * motivationalQuotes[language].length)];
+
+  return (
+    <div className="space-y-6 pb-20">
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden rounded-2xl shadow-elevated">
+        <div 
+          className="h-48 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBanner})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-nepal-red/80 via-nepal-blue/70 to-transparent" />
+          <div className="relative h-full flex items-center justify-center p-6 text-center">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold text-white leading-tight">
+                {language === "en" ? "Welcome to Nepal MCQ" : "नेपाल एमसीक्यूमा स्वागतम्"}
+              </h2>
+              <p className="text-white/90 text-sm max-w-xs mx-auto nepali-text">
+                {currentQuote}
+              </p>
+              <Button 
+                variant="gold" 
+                size="sm" 
+                onClick={() => onNavigate("mcqs")}
+                className="animate-pulse-glow"
+              >
+                <BookOpen size={16} />
+                {language === "en" ? "Start Learning" : "सिक्न सुरु गर्नुहोस्"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">
+          {language === "en" ? "Quick Actions" : "द्रुत कार्यहरू"}
+        </h3>
+        <div className="grid grid-cols-2 gap-3">
+          {quickActions[language].map((action) => {
+            const Icon = action.icon;
+            return (
+              <Button
+                key={action.action}
+                variant={action.color as any}
+                className="h-auto p-4 flex flex-col gap-2"
+                onClick={() => onNavigate(action.action)}
+              >
+                <Icon size={24} />
+                <div className="text-center">
+                  <div className="font-medium text-sm nepali-text">{action.label}</div>
+                  <div className="text-xs opacity-80 nepali-text">{action.description}</div>
+                </div>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="glass">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-primary">1,247</div>
+            <div className="text-xs text-muted-foreground nepali-text">
+              {language === "en" ? "Questions" : "प्रश्नहरू"}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="glass">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-success">856</div>
+            <div className="text-xs text-muted-foreground nepali-text">
+              {language === "en" ? "Students" : "विद्यार्थी"}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="glass">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-warning">92%</div>
+            <div className="text-xs text-muted-foreground nepali-text">
+              {language === "en" ? "Success Rate" : "सफलता दर"}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Upcoming Exams */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">
+          {language === "en" ? "Upcoming Exams" : "आगामी परीक्षाहरू"}
+        </h3>
+        <div className="space-y-3">
+          {upcomingExams[language].map((exam, index) => (
+            <Card key={index} className="glass hover:shadow-soft transition-smooth">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <h4 className="font-medium text-foreground nepali-text">{exam.name}</h4>
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <Calendar size={14} />
+                      <span className="nepali-text">{exam.date}</span>
+                    </div>
+                  </div>
+                  <div className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full nepali-text">
+                    {exam.type}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
