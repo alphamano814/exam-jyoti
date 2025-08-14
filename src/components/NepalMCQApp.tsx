@@ -3,12 +3,15 @@ import { Header } from "./Header";
 import { BottomNavigation } from "./BottomNavigation";
 import { HomePage } from "./HomePage";
 import { MCQPage } from "./MCQPage";
+import { AuthForm } from "./AuthForm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Calendar, User, BookOpen } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const NepalMCQApp = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [language, setLanguage] = useState<"en" | "np">("en");
+  const { user, loading } = useAuth();
 
   const handleLanguageToggle = () => {
     setLanguage(prev => prev === "en" ? "np" : "en");
@@ -35,12 +38,30 @@ export const NepalMCQApp = () => {
     }
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nepal-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if not logged in
+  if (!user) {
+    return <AuthForm language={language} onLanguageToggle={handleLanguageToggle} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
         language={language}
         onLanguageToggle={handleLanguageToggle}
-        username="Student"
+        username={user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+        userImage={user.user_metadata?.avatar_url}
       />
       
       <main className="px-4 py-6 max-w-md mx-auto">
