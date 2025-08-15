@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Trophy, Clock, CheckCircle, XCircle, Bookmark, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MCQPageProps {
   language: "en" | "np";
@@ -30,44 +31,96 @@ const categories = {
   ]
 };
 
-const sampleQuestions = {
-  en: {
-    question: "What is the capital of Nepal?",
-    options: ["Kathmandu", "Pokhara", "Chitwan", "Biratnagar"],
-    correct: 0,
-    explanation: "Kathmandu is the capital and largest city of Nepal."
-  },
-  np: {
-    question: "नेपालको राजधानी कुन हो?",
-    options: ["काठमाडौं", "पोखरा", "चितवन", "बिराटनगर"],
-    correct: 0,
-    explanation: "काठमाडौं नेपालको राजधानी र सबैभन्दा ठूलो शहर हो।"
-  }
-};
-
 export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchQuestions = async (category: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('subject', category)
+        .limit(10);
+
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setQuestions(data);
+      } else {
+        // If no questions found, show a message
+        setQuestions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+      setQuestions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (selectedCategory) {
-    const question = sampleQuestions[language];
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nepal-primary"></div>
+        </div>
+      );
+    }
+
+    if (questions.length === 0) {
+      return (
+        <div className="text-center space-y-4 pb-20">
+          <Card className="glass p-8">
+            <CardContent className="space-y-4">
+              <BookOpen size={48} className="mx-auto text-muted-foreground" />
+              <h2 className="text-2xl font-bold">
+                {language === "en" ? "No Questions Available" : "कुनै प्रश्न उपलब्ध छैन"}
+              </h2>
+              <p className="text-muted-foreground nepali-text">
+                {language === "en" 
+                  ? "Questions for this category haven't been uploaded yet." 
+                  : "यस श्रेणीका लागि प्रश्नहरू अझै अपलोड गरिएको छैन।"}
+              </p>
+              <Button onClick={() => setSelectedCategory(null)}>
+                {language === "en" ? "Go Back" : "फिर्ता जानुहोस्"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    const question = questions[currentQuestion];
     
     const handleAnswerSelect = (index: number) => {
       setSelectedAnswer(index);
       setShowResult(true);
       
-      if (index === question.correct) {
+      // Convert A,B,C,D to 0,1,2,3
+      const correctIndex = question.correct_option.charCodeAt(0) - 65;
+      if (index === correctIndex) {
         setScore(prev => prev + 1);
       }
     };
 
     const nextQuestion = () => {
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setCurrentQuestion(prev => prev + 1);
+      if (currentQuestion < questions.length - 1) {
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setCurrentQuestion(prev => prev + 1);
+      } else {
+        // Quiz completed
+        setSelectedCategory(null);
+        setCurrentQuestion(0);
+        setScore(0);
+      }
     };
 
     return (
@@ -77,7 +130,13 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setSelectedCategory(null)}
+            onClick={() => {
+              setSelectedCategory(null);
+              setCurrentQuestion(0);
+              setScore(0);
+              setSelectedAnswer(null);
+              setShowResult(false);
+            }}
             className="gap-2"
           >
             <ArrowLeft size={16} />
@@ -98,7 +157,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span className="nepali-text">
-              {language === "en" ? `Question ${currentQuestion + 1} of 10` : `प्रश्न ${currentQuestion + 1} को 10`}
+              {language === "en" ? `Question ${currentQuestion + 1} of ${questions.length}` : `प्रश्न ${currentQuestion + 1} को ${questions.length}`}
             </span>
             <span className="nepali-text">
               {language === "en" ? `Score: ${score}` : `अंक: ${score}`}
@@ -107,7 +166,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           <div className="h-2 bg-muted rounded-full">
             <div 
               className="h-full gradient-nepal rounded-full transition-all duration-500"
-              style={{ width: `${((currentQuestion + 1) / 10) * 100}%` }}
+              style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
             />
           </div>
         </div>
@@ -120,33 +179,36 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {question.options.map((option, index) => (
-              <Button
-                key={index}
-                variant={selectedAnswer === null ? "quiz" : 
-                  index === question.correct ? "success" : 
-                  selectedAnswer === index ? "destructive" : "quiz"
-                }
-                className={`w-full text-left justify-start h-auto p-4 ${
-                  showResult && index === question.correct ? "animate-pulse-glow" : ""
-                }`}
+            {[question.option_a, question.option_b, question.option_c, question.option_d].map((option, index) => {
+              const correctIndex = question.correct_option.charCodeAt(0) - 65; // Convert A,B,C,D to 0,1,2,3
+              return (
+                <Button
+                  key={index}
+                  variant={selectedAnswer === null ? "quiz" : 
+                    index === correctIndex ? "success" : 
+                    selectedAnswer === index ? "destructive" : "quiz"
+                  }
+                  className={`w-full text-left justify-start h-auto p-4 ${
+                    showResult && index === correctIndex ? "animate-pulse-glow" : ""
+                  }`}
                 onClick={() => !showResult && handleAnswerSelect(index)}
                 disabled={showResult}
               >
-                <div className="flex items-center gap-3 w-full">
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium ${
-                    showResult && index === question.correct ? "border-white bg-white/20" :
-                    showResult && selectedAnswer === index && index !== question.correct ? "border-white bg-white/20" :
-                    "border-current"
-                  }`}>
-                    {showResult && index === question.correct ? <CheckCircle size={16} /> :
-                     showResult && selectedAnswer === index && index !== question.correct ? <XCircle size={16} /> :
-                     String.fromCharCode(65 + index)}
+                  <div className="flex items-center gap-3 w-full">
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium ${
+                      showResult && index === correctIndex ? "border-white bg-white/20" :
+                      showResult && selectedAnswer === index && index !== correctIndex ? "border-white bg-white/20" :
+                      "border-current"
+                    }`}>
+                      {showResult && index === correctIndex ? <CheckCircle size={16} /> :
+                       showResult && selectedAnswer === index && index !== correctIndex ? <XCircle size={16} /> :
+                       String.fromCharCode(65 + index)}
+                    </div>
+                    <span className="flex-1 nepali-text">{option}</span>
                   </div>
-                  <span className="flex-1 nepali-text">{option}</span>
-                </div>
-              </Button>
-            ))}
+                </Button>
+              )
+            })}
 
             {showResult && (
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
@@ -162,7 +224,9 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
                   className="mt-4" 
                   onClick={nextQuestion}
                 >
-                  {language === "en" ? "Next Question" : "अर्को प्रश्न"}
+                  {currentQuestion < questions.length - 1 
+                    ? (language === "en" ? "Next Question" : "अर्को प्रश्न")
+                    : (language === "en" ? "Finish Quiz" : "क्विज समाप्त गर्नुहोस्")}
                 </Button>
               </div>
             )}
@@ -190,7 +254,10 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           <Card 
             key={category.id} 
             className="glass hover:shadow-nepal transition-smooth cursor-pointer group"
-            onClick={() => setSelectedCategory(category.id)}
+            onClick={() => {
+              setSelectedCategory(category.id);
+              fetchQuestions(category.name);
+            }}
           >
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -204,9 +271,9 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
                   <p className="text-sm text-muted-foreground nepali-text">
                     {category.description}
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
+                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="secondary" className="text-xs">
-                      {category.questions} {language === "en" ? "questions" : "प्रश्नहरू"}
+                      {language === "en" ? "Available" : "उपलब्ध"}
                     </Badge>
                     <Trophy size={14} className="text-nepal-gold" />
                   </div>

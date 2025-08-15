@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Plus, Upload } from 'lucide-react'
 
@@ -47,9 +47,22 @@ export const QuestionUpload = () => {
     setLoading(true)
 
     try {
+      // Transform data to match database schema
+      const dbData = {
+        question: questionData.question,
+        option_a: questionData.options[0],
+        option_b: questionData.options[1],
+        option_c: questionData.options[2],
+        option_d: questionData.options[3],
+        correct_option: String.fromCharCode(65 + questionData.correct_answer), // Convert 0,1,2,3 to A,B,C,D
+        explanation: questionData.explanation,
+        subject: questionData.subject,
+        difficulty: questionData.difficulty,
+      };
+
       const { error } = await supabase
         .from('questions')
-        .insert([questionData])
+        .insert([dbData])
 
       if (error) throw error
 
@@ -93,15 +106,17 @@ export const QuestionUpload = () => {
       
       const questions = lines.slice(1).filter(line => line.trim()).map(line => {
         const values = line.split(',')
+        const correctAnswerIndex = parseInt(values[5]) || 0;
         return {
           question: values[0],
-          options: [values[1], values[2], values[3], values[4]],
-          correct_answer: parseInt(values[5]) || 0,
+          option_a: values[1],
+          option_b: values[2],
+          option_c: values[3],
+          option_d: values[4],
+          correct_option: String.fromCharCode(65 + correctAnswerIndex), // Convert 0,1,2,3 to A,B,C,D
           explanation: values[6] || '',
-          category: values[7] || '',
           subject: values[8] || '',
           difficulty: (values[9] as 'easy' | 'medium' | 'hard') || 'medium',
-          language: (values[10] as 'en' | 'ne') || 'en'
         }
       })
 

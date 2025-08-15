@@ -1,17 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { BottomNavigation } from "./BottomNavigation";
 import { HomePage } from "./HomePage";
 import { MCQPage } from "./MCQPage";
 import { AuthForm } from "./AuthForm";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Calendar, User, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, Calendar, User, BookOpen, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const NepalMCQApp = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [language, setLanguage] = useState<"en" | "np">("en");
-  const { user, loading } = useAuth();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const { user, loading, signOut } = useAuth();
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (data) {
+            setUserProfile(data);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   const handleLanguageToggle = () => {
     setLanguage(prev => prev === "en" ? "np" : "en");
@@ -32,7 +58,7 @@ export const NepalMCQApp = () => {
       case "leaderboard":
         return <LeaderboardPage language={language} />;
       case "profile":
-        return <ProfilePage language={language} />;
+        return <ProfilePage language={language} user={userProfile} onLogout={signOut} />;
       default:
         return <HomePage language={language} onNavigate={handleNavigate} />;
     }
@@ -134,14 +160,20 @@ const LeaderboardPage = ({ language }: { language: "en" | "np" }) => (
   </div>
 );
 
-const ProfilePage = ({ language }: { language: "en" | "np" }) => (
+const ProfilePage = ({ language, user, onLogout }: { 
+  language: "en" | "np";
+  user: any;
+  onLogout: () => void;
+}) => (
   <div className="space-y-6 pb-20">
     <div className="text-center space-y-4">
       <div className="w-24 h-24 rounded-full gradient-nepal flex items-center justify-center text-white text-3xl font-bold mx-auto">
-        S
+        {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'S'}
       </div>
       <div>
-        <h2 className="text-2xl font-bold">Student</h2>
+        <h2 className="text-2xl font-bold">
+          {user?.full_name || 'Student'}
+        </h2>
         <p className="text-muted-foreground">
           {language === "en" ? "Exam Aspirant" : "परीक्षा आकांक्षी"}
         </p>
@@ -151,7 +183,9 @@ const ProfilePage = ({ language }: { language: "en" | "np" }) => (
     <div className="grid grid-cols-2 gap-4">
       <Card className="glass text-center">
         <CardContent className="p-4">
-          <div className="text-2xl font-bold text-primary">87</div>
+          <div className="text-2xl font-bold text-primary">
+            {user?.total_quizzes || 0}
+          </div>
           <div className="text-sm text-muted-foreground nepali-text">
             {language === "en" ? "Quizzes Completed" : "पूरा गरिएका क्विज"}
           </div>
@@ -159,9 +193,11 @@ const ProfilePage = ({ language }: { language: "en" | "np" }) => (
       </Card>
       <Card className="glass text-center">
         <CardContent className="p-4">
-          <div className="text-2xl font-bold text-success">94%</div>
+          <div className="text-2xl font-bold text-success">
+            {user?.highest_score || 0}
+          </div>
           <div className="text-sm text-muted-foreground nepali-text">
-            {language === "en" ? "Accuracy Rate" : "सटीकता दर"}
+            {language === "en" ? "Highest Score" : "उच्चतम स्कोर"}
           </div>
         </CardContent>
       </Card>
@@ -190,5 +226,14 @@ const ProfilePage = ({ language }: { language: "en" | "np" }) => (
         </div>
       </CardContent>
     </Card>
+
+    <Button 
+      variant="destructive" 
+      className="w-full" 
+      onClick={onLogout}
+    >
+      <LogOut size={16} className="mr-2" />
+      {language === "en" ? "Logout" : "लगआउट"}
+    </Button>
   </div>
 );
