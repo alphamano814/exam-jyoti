@@ -28,13 +28,13 @@ const quickActions = {
     { icon: BookOpen, label: "Start Quiz", description: "Begin your practice", action: "mcqs", color: "nepal" },
     { icon: Calendar, label: "Daily Challenge", description: "Today's special quiz", action: "daily-quiz", color: "gold" },
     { icon: Trophy, label: "Leaderboard", description: "Check your ranking", action: "leaderboard", color: "success" },
-    { icon: Users, label: "Study Groups", description: "Join other students", action: "groups", color: "category" },
+    { icon: Users, label: "All Questions", description: "Browse by category", action: "all-questions", color: "category" },
   ],
   np: [
     { icon: BookOpen, label: "क्विज सुरु गर्नुहोस्", description: "अभ्यास सुरु गर्नुहोस्", action: "mcqs", color: "nepal" },
     { icon: Calendar, label: "दैनिक चुनौती", description: "आजको विशेष क्विज", action: "daily-quiz", color: "gold" },
     { icon: Trophy, label: "लिडरबोर्ड", description: "तपाईंको स्थान हेर्नुहोस्", action: "leaderboard", color: "success" },
-    { icon: Users, label: "अध्ययन समूह", description: "अन्य विद्यार्थीहरूसँग जोडिनुहोस्", action: "groups", color: "category" },
+    { icon: Users, label: "सबै प्रश्नहरू", description: "श्रेणी अनुसार हेर्नुहोस्", action: "all-questions", color: "category" },
   ]
 };
 

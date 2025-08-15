@@ -3,6 +3,7 @@ import { Header } from "./Header";
 import { BottomNavigation } from "./BottomNavigation";
 import { HomePage } from "./HomePage";
 import { MCQPage } from "./MCQPage";
+import { AllQuestionsPage } from "./AllQuestionsPage";
 import { AuthForm } from "./AuthForm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,8 @@ export const NepalMCQApp = () => {
         return <HomePage language={language} onNavigate={handleNavigate} />;
       case "mcqs":
         return <MCQPage language={language} onNavigate={handleNavigate} />;
+      case "all-questions":
+        return <AllQuestionsPage language={language} onNavigate={handleNavigate} />;
       case "daily-quiz":
         return <DailyQuizPage language={language} />;
       case "leaderboard":
