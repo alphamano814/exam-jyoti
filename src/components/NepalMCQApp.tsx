@@ -58,7 +58,7 @@ export const NepalMCQApp = () => {
       case "leaderboard":
         return <LeaderboardPage language={language} />;
       case "profile":
-        return <ProfilePage language={language} user={userProfile} onLogout={signOut} />;
+        return <ProfilePage language={language} user={userProfile} authUser={user} onLogout={signOut} />;
       default:
         return <HomePage language={language} onNavigate={handleNavigate} />;
     }
@@ -160,27 +160,32 @@ const LeaderboardPage = ({ language }: { language: "en" | "np" }) => (
   </div>
 );
 
-const ProfilePage = ({ language, user, onLogout }: { 
+const ProfilePage = ({ language, user, authUser, onLogout }: { 
   language: "en" | "np";
   user: any;
+  authUser: any;
   onLogout: () => void;
-}) => (
-  <div className="space-y-6 pb-20">
-    <div className="text-center space-y-4">
-      <div className="w-24 h-24 rounded-full gradient-nepal flex items-center justify-center text-white text-3xl font-bold mx-auto">
-        {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'S'}
+}) => {
+  // Get full name from database profile or auth metadata
+  const fullName = user?.full_name || authUser?.user_metadata?.full_name || 'Student';
+  
+  return (
+    <div className="space-y-6 pb-20">
+      <div className="text-center space-y-4">
+        <div className="w-24 h-24 rounded-full gradient-nepal flex items-center justify-center text-white text-3xl font-bold mx-auto">
+          {fullName.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold">
+            {fullName}
+          </h2>
+          <p className="text-muted-foreground">
+            {language === "en" ? "Exam Aspirant" : "परीक्षा आकांक्षी"}
+          </p>
+        </div>
       </div>
-      <div>
-        <h2 className="text-2xl font-bold">
-          {user?.full_name || 'Student'}
-        </h2>
-        <p className="text-muted-foreground">
-          {language === "en" ? "Exam Aspirant" : "परीक्षा आकांक्षी"}
-        </p>
-      </div>
-    </div>
 
-    <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
       <Card className="glass text-center">
         <CardContent className="p-4">
           <div className="text-2xl font-bold text-primary">
@@ -227,13 +232,14 @@ const ProfilePage = ({ language, user, onLogout }: {
       </CardContent>
     </Card>
 
-    <Button 
-      variant="destructive" 
-      className="w-full" 
-      onClick={onLogout}
-    >
-      <LogOut size={16} className="mr-2" />
-      {language === "en" ? "Logout" : "लगआउट"}
-    </Button>
-  </div>
-);
+      <Button 
+        variant="destructive" 
+        className="w-full" 
+        onClick={onLogout}
+      >
+        <LogOut size={16} className="mr-2" />
+        {language === "en" ? "Logout" : "लगआउट"}
+      </Button>
+    </div>
+  );
+};
