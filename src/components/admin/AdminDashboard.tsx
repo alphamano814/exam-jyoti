@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/integrations/supabase/client'
 import { useAdmin } from '@/hooks/useAdmin'
 import { QuestionUpload } from './QuestionUpload'
+import { QuestionManagement } from './QuestionManagement'
 import { LogOut, BookOpen, Users, TrendingUp, Plus } from 'lucide-react'
 
 interface AdminStats {
@@ -153,8 +154,9 @@ export const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="questions">
+          <TabsContent value="questions" className="space-y-6">
             <QuestionUpload />
+            <QuestionManagement />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
