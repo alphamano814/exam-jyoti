@@ -56,8 +56,10 @@ export const QuestionUpload = () => {
         option_d: questionData.options[3],
         correct_option: String.fromCharCode(65 + questionData.correct_answer), // Convert 0,1,2,3 to A,B,C,D
         explanation: questionData.explanation,
+        category: questionData.category,
         subject: questionData.subject,
         difficulty: questionData.difficulty,
+        language: questionData.language,
       };
 
       const { error } = await supabase
@@ -115,8 +117,10 @@ export const QuestionUpload = () => {
           option_d: values[4],
           correct_option: String.fromCharCode(65 + correctAnswerIndex), // Convert 0,1,2,3 to A,B,C,D
           explanation: values[6] || '',
+          category: values[7] || '',
           subject: values[8] || '',
           difficulty: (values[9] as 'easy' | 'medium' | 'hard') || 'medium',
+          language: values[10] || 'en',
         }
       })
 

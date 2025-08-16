@@ -16,11 +16,13 @@ export type Database = {
     Tables: {
       questions: {
         Row: {
+          category: string | null
           correct_option: string
           created_at: string
           difficulty: string | null
           explanation: string | null
           id: string
+          language: string | null
           option_a: string
           option_b: string
           option_c: string
@@ -29,11 +31,13 @@ export type Database = {
           subject: string | null
         }
         Insert: {
+          category?: string | null
           correct_option: string
           created_at?: string
           difficulty?: string | null
           explanation?: string | null
           id?: string
+          language?: string | null
           option_a: string
           option_b: string
           option_c: string
@@ -42,11 +46,13 @@ export type Database = {
           subject?: string | null
         }
         Update: {
+          category?: string | null
           correct_option?: string
           created_at?: string
           difficulty?: string | null
           explanation?: string | null
           id?: string
+          language?: string | null
           option_a?: string
           option_b?: string
           option_c?: string
