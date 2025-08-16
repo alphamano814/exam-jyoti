@@ -18,7 +18,7 @@ interface Question {
   option_d: string;
   correct_option: string;
   explanation?: string;
-  subject: string;
+  category: string;
 }
 
 export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps) => {
@@ -35,16 +35,16 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
       try {
         const { data, error } = await supabase
           .from('questions')
-          .select('subject')
-          .not('subject', 'is', null);
+          .select('category')
+          .not('category', 'is', null);
 
         if (error) {
           console.error('Error fetching categories:', error);
           return;
         }
 
-        // Get unique subjects
-        const uniqueSubjects = [...new Set(data.map(item => item.subject))].filter(Boolean);
+        // Get unique categories
+        const uniqueSubjects = [...new Set(data.map(item => item.category))].filter(Boolean);
         setCategories(uniqueSubjects);
       } catch (error) {
         console.error('Error:', error);
@@ -63,7 +63,7 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
       const { data, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('subject', category);
+        .eq('category', category);
 
       if (error) {
         console.error('Error fetching questions:', error);
@@ -194,48 +194,36 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-2">
-                  {[
-                    { key: 'option_a', value: question.option_a },
-                    { key: 'option_b', value: question.option_b },
-                    { key: 'option_c', value: question.option_c },
-                    { key: 'option_d', value: question.option_d }
-                  ].map((option) => (
-                    <div 
-                      key={option.key}
-                      className={`p-3 rounded-lg border transition-smooth nepali-text ${
-                        showAnswers[question.id] && option.key === question.correct_option
-                          ? 'border-success bg-success/10 text-success'
-                          : 'border-border bg-card'
-                      }`}
-                    >
-                      <span className="font-medium">
-                        {getOptionLabel(option.key)}. 
-                      </span>
-                      {' ' + option.value}
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  <div className="p-3 rounded-lg border border-success bg-success/10 text-success nepali-text">
+                    <span className="font-medium">
+                      {question.correct_option}. 
+                    </span>
+                    {' ' + question[`option_${question.correct_option.toLowerCase()}` as keyof Question]}
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleAnswer(question.id)}
-                  >
-                    {showAnswers[question.id] ? (
-                      <>
-                        <EyeOff size={16} className="mr-2" />
-                        {language === "en" ? "Hide Answer" : "उत्तर लुकाउनुहोस्"}
-                      </>
-                    ) : (
-                      <>
-                        <Eye size={16} className="mr-2" />
-                        {language === "en" ? "Show Answer" : "उत्तर देखाउनुहोस्"}
-                      </>
-                    )}
-                  </Button>
-                </div>
+                {question.explanation && (
+                  <div className="pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleAnswer(question.id)}
+                    >
+                      {showAnswers[question.id] ? (
+                        <>
+                          <EyeOff size={16} className="mr-2" />
+                          {language === "en" ? "Hide Explanation" : "व्याख्या लुकाउनुहोस्"}
+                        </>
+                      ) : (
+                        <>
+                          <Eye size={16} className="mr-2" />
+                          {language === "en" ? "Show Explanation" : "व्याख्या देखाउनुहोस्"}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
 
                 {showAnswers[question.id] && question.explanation && (
                   <div className="p-3 bg-primary/5 rounded-lg">

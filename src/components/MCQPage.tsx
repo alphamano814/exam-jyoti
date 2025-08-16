@@ -40,13 +40,18 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchQuestions = async (category: string) => {
+  const fetchQuestions = async (categoryName: string) => {
     setLoading(true);
     try {
+      // Map category names to database category values
+      let categoryValue = categoryName.toLowerCase();
+      if (categoryName === "General Knowledge") categoryValue = "general-knowledge";
+      if (categoryName === "Lok Sewa") categoryValue = "lok-sewa";
+      
       const { data, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('subject', category)
+        .eq('category', categoryValue)
         .limit(10);
 
       if (error) throw error;

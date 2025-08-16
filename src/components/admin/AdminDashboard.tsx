@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { useAdmin } from '@/hooks/useAdmin'
 import { QuestionUpload } from './QuestionUpload'
 import { LogOut, BookOpen, Users, TrendingUp, Plus } from 'lucide-react'
@@ -79,7 +79,10 @@ export const AdminDashboard = () => {
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
               <p className="text-muted-foreground">Nepal MCQ Exam Preparation Admin Panel</p>
             </div>
-            <Button onClick={logoutAdmin} variant="outline">
+            <Button onClick={() => {
+              logoutAdmin();
+              window.location.href = '/';
+            }} variant="outline">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
