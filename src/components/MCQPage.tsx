@@ -46,11 +46,12 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
     try {
-      // Use the exact category name as stored in database
+      // Use the exact category name as stored in database and filter by language
       const { data: allQuestions, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('category', categoryName);
+        .eq('category', categoryName)
+        .eq('language', language);
 
       if (error) throw error;
       
