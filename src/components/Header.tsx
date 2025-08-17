@@ -21,16 +21,13 @@ export const Header = ({ language, onLanguageToggle, username, userImage }: Head
       <div className="flex items-center justify-between p-4 max-w-md mx-auto">
         {/* Logo and Title */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg gradient-nepal flex items-center justify-center">
-            <span className="text-white font-bold text-sm">नेपाल</span>
+          <div className="w-10 h-10 rounded-lg gradient-nepal flex items-center justify-center shadow-soft">
+            <span className="text-white font-bold">नेपाल</span>
           </div>
           <div>
-            <h1 className="font-bold text-lg text-foreground">
+            <h1 className="font-bold text-xl text-foreground">
               {language === "en" ? "Nepal MCQ" : "नेपाल एमसीक्यू"}
             </h1>
-            <p className="text-xs text-muted-foreground">
-              {language === "en" ? "Exam Preparation" : "परीक्षा तयारी"}
-            </p>
           </div>
         </div>
 
