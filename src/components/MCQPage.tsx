@@ -39,27 +39,44 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [score, setScore] = useState(0);
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentSet, setCurrentSet] = useState(1);
+  const [totalScore, setTotalScore] = useState(0);
+  const [usedQuestionIds, setUsedQuestionIds] = useState<string[]>([]);
 
-  const fetchQuestions = async (categoryName: string) => {
+  const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
     try {
-      // Map category names to database category values
-      let categoryValue = categoryName.toLowerCase();
-      if (categoryName === "General Knowledge") categoryValue = "general-knowledge";
-      if (categoryName === "Lok Sewa") categoryValue = "lok-sewa";
-      
-      const { data, error } = await supabase
+      // Use the exact category name as stored in database
+      const { data: allQuestions, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('category', categoryValue)
-        .limit(10);
+        .eq('category', categoryName);
 
       if (error) throw error;
       
-      if (data && data.length > 0) {
-        setQuestions(data);
+      if (allQuestions && allQuestions.length > 0) {
+        // Filter out already used questions if continuing with new set
+        const availableQuestions = isNewSet 
+          ? allQuestions.filter(q => !usedQuestionIds.includes(q.id))
+          : allQuestions;
+        
+        if (availableQuestions.length === 0) {
+          // If no unused questions, reset and start over
+          setUsedQuestionIds([]);
+          const randomQuestions = [...allQuestions]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, Math.min(10, allQuestions.length));
+          setQuestions(randomQuestions);
+          setUsedQuestionIds(randomQuestions.map(q => q.id));
+        } else {
+          // Select 10 random questions from available ones
+          const randomQuestions = [...availableQuestions]
+            .sort(() => Math.random() - 0.5)
+            .slice(0, Math.min(10, availableQuestions.length));
+          setQuestions(randomQuestions);
+          setUsedQuestionIds(prev => [...prev, ...randomQuestions.map(q => q.id)]);
+        }
       } else {
-        // If no questions found, show a message
         setQuestions([]);
       }
     } catch (error) {
@@ -70,11 +87,75 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
     }
   };
 
+  const startNewSet = () => {
+    const categoryName = categories[language].find(cat => cat.id === selectedCategory)?.name;
+    if (categoryName) {
+      fetchQuestions(categoryName, true);
+    }
+  };
+
+  const goBack = () => {
+    setSelectedCategory(null);
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setCurrentSet(1);
+    setTotalScore(0);
+    setUsedQuestionIds([]);
+  };
+
   if (selectedCategory) {
     if (loading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nepal-primary"></div>
+        </div>
+      );
+    }
+
+    // Show set completion screen when a set is finished
+    if (currentQuestion === 0 && currentSet > 1 && questions.length > 0) {
+      return (
+        <div className="text-center space-y-6 pb-20">
+          <Card className="glass p-8">
+            <CardContent className="space-y-6">
+              <Trophy size={48} className="mx-auto text-nepal-gold" />
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">
+                  {language === "en" ? `Set ${currentSet - 1} Completed!` : `सेट ${currentSet - 1} सम्पन्न!`}
+                </h2>
+                <p className="text-lg font-medium text-primary">
+                  {language === "en" ? `Score: ${totalScore}/10` : `अंक: ${totalScore}/10`}
+                </p>
+              </div>
+              
+              {totalScore > 0 && (
+                <div className="text-center">
+                  <p className="text-muted-foreground nepali-text">
+                    {language === "en" ? `Total Score: ${totalScore}` : `जम्मा अंक: ${totalScore}`}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
+                <Button 
+                  variant="nepal" 
+                  className="w-full" 
+                  onClick={startNewSet}
+                >
+                  {language === "en" ? "Start New Set" : "नयाँ सेट सुरु गर्नुहोस्"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={goBack}
+                >
+                  {language === "en" ? "Choose Different Category" : "फरक श्रेणी छान्नुहोस्"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -121,10 +202,13 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
         setShowResult(false);
         setCurrentQuestion(prev => prev + 1);
       } else {
-        // Quiz completed
-        setSelectedCategory(null);
+        // Set completed - show completion screen
+        setTotalScore(prev => prev + score);
+        setShowResult(false);
+        setSelectedAnswer(null);
         setCurrentQuestion(0);
         setScore(0);
+        setCurrentSet(prev => prev + 1);
       }
     };
 
@@ -135,13 +219,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => {
-              setSelectedCategory(null);
-              setCurrentQuestion(0);
-              setScore(0);
-              setSelectedAnswer(null);
-              setShowResult(false);
-            }}
+            onClick={goBack}
             className="gap-2"
           >
             <ArrowLeft size={16} />
@@ -160,13 +238,20 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
 
         {/* Progress */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span className="nepali-text">
-              {language === "en" ? `Question ${currentQuestion + 1} of ${questions.length}` : `प्रश्न ${currentQuestion + 1} को ${questions.length}`}
-            </span>
-            <span className="nepali-text">
-              {language === "en" ? `Score: ${score}` : `अंक: ${score}`}
-            </span>
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            <div className="nepali-text">
+              {language === "en" ? `Set ${currentSet} • Question ${currentQuestion + 1} of ${questions.length}` : `सेट ${currentSet} • प्रश्न ${currentQuestion + 1} को ${questions.length}`}
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="nepali-text">
+                {language === "en" ? `Current: ${score}` : `हालको: ${score}`}
+              </span>
+              {totalScore > 0 && (
+                <span className="nepali-text text-primary font-medium">
+                  {language === "en" ? `Total: ${totalScore + score}` : `जम्मा: ${totalScore + score}`}
+                </span>
+              )}
+            </div>
           </div>
           <div className="h-2 bg-muted rounded-full">
             <div 
