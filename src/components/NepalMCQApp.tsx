@@ -217,7 +217,7 @@ const ProfilePage = ({ language, user, authUser, onLogout }: {
           {language === "en" ? "Study Progress" : "अध्ययन प्रगति"}
         </h3>
         <div className="space-y-3">
-          {["Lok Sewa", "SEE", "General Knowledge"].map((subject, index) => (
+          {["Lok Sewa", "General Knowledge", "Science"].map((subject, index) => (
             <div key={subject} className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>{subject}</span>

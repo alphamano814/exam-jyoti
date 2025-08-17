@@ -41,13 +41,13 @@ const quickActions = {
 const upcomingExams = {
   en: [
     { name: "Lok Sewa - Officer Level", date: "March 15, 2024", type: "Government" },
-    { name: "SEE Examination", date: "April 20, 2024", type: "School Level" },
     { name: "Banking Service", date: "May 10, 2024", type: "Financial" },
+    { name: "Teaching License", date: "June 5, 2024", type: "Education" },
   ],
   np: [
     { name: "लोक सेवा - अधिकृत तह", date: "मार्च १५, २०२४", type: "सरकारी" },
-    { name: "एसईई परीक्षा", date: "अप्रिल २०, २०२४", type: "विद्यालय तह" },
     { name: "बैंकिङ सेवा", date: "मे १०, २०२४", type: "वित्तीय" },
+    { name: "शिक्षण इजाजतपत्र", date: "जुन ५, २०२४", type: "शिक्षा" },
   ]
 };
 

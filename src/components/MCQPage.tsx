@@ -13,7 +13,6 @@ interface MCQPageProps {
 const categories = {
   en: [
     { id: "lok-sewa", name: "Lok Sewa", description: "Government service preparation", questions: 245, color: "bg-nepal-red" },
-    { id: "see", name: "SEE", description: "Secondary Education Examination", questions: 189, color: "bg-nepal-blue" },
     { id: "general", name: "General Knowledge", description: "Current affairs & GK", questions: 156, color: "bg-nepal-gold" },
     { id: "science", name: "Science", description: "Physics, Chemistry, Biology", questions: 134, color: "bg-success" },
     { id: "math", name: "Mathematics", description: "Arithmetic to Advanced", questions: 178, color: "bg-warning" },
@@ -22,7 +21,6 @@ const categories = {
   ],
   np: [
     { id: "lok-sewa", name: "लोक सेवा", description: "सरकारी सेवा तयारी", questions: 245, color: "bg-nepal-red" },
-    { id: "see", name: "एसईई", description: "माध्यमिक शिक्षा परीक्षा", questions: 189, color: "bg-nepal-blue" },
     { id: "general", name: "सामान्य ज्ञान", description: "समसामयिक र सामान्य ज्ञान", questions: 156, color: "bg-nepal-gold" },
     { id: "science", name: "विज्ञान", description: "भौतिक, रसायन, जीवविज्ञान", questions: 134, color: "bg-success" },
     { id: "math", name: "गणित", description: "अंकगणितदेखि उन्नत सम्म", questions: 178, color: "bg-warning" },

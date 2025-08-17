@@ -172,7 +172,6 @@ export const QuestionUpload = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="lok-sewa">Lok Sewa</SelectItem>
-                      <SelectItem value="see">SEE</SelectItem>
                       <SelectItem value="general-knowledge">General Knowledge</SelectItem>
                       <SelectItem value="current-affairs">Current Affairs</SelectItem>
                       <SelectItem value="science">Science</SelectItem>
