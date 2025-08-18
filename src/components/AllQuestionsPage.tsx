@@ -28,7 +28,7 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
   const [loading, setLoading] = useState(false);
   const [showAnswers, setShowAnswers] = useState<{ [key: string]: boolean }>({});
 
-  // Fetch categories on mount
+  // Fetch categories on mount and when language changes
   useEffect(() => {
     const fetchCategories = async () => {
       setLoading(true);
@@ -36,6 +36,7 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
         const { data, error } = await supabase
           .from('questions')
           .select('category')
+          .eq('language', language)
           .not('category', 'is', null);
 
         if (error) {
@@ -53,8 +54,13 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
       }
     };
 
+    // Reset state when language changes
+    setSelectedCategory(null);
+    setQuestions([]);
+    setShowAnswers({});
+    
     fetchCategories();
-  }, []);
+  }, [language]);
 
   // Fetch questions by category
   const fetchQuestionsByCategory = async (category: string) => {
@@ -63,7 +69,8 @@ export const AllQuestionsPage = ({ language, onNavigate }: AllQuestionsPageProps
       const { data, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('category', category);
+        .eq('category', category)
+        .eq('language', language);
 
       if (error) {
         console.error('Error fetching questions:', error);
