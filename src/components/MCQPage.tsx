@@ -44,6 +44,13 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   // Refetch questions when language changes
   useEffect(() => {
     if (selectedCategory) {
+      // Reset quiz state when language changes
+      setCurrentQuestion(0);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setScore(0);
+      setQuestions([]);
+      
       const categoryName = categories[language].find(cat => cat.id === selectedCategory)?.name;
       if (categoryName) {
         fetchQuestions(categoryName);
