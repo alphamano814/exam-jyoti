@@ -41,6 +41,16 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [totalScore, setTotalScore] = useState(0);
   const [usedQuestionIds, setUsedQuestionIds] = useState<string[]>([]);
 
+  // Refetch questions when language changes
+  useEffect(() => {
+    if (selectedCategory) {
+      const categoryName = categories[language].find(cat => cat.id === selectedCategory)?.name;
+      if (categoryName) {
+        fetchQuestions(categoryName);
+      }
+    }
+  }, [language, selectedCategory]);
+
   const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
     try {
