@@ -12,20 +12,20 @@ interface MCQPageProps {
 
 const categories = {
   en: [
-    { id: "Lok Sewa", name: "Lok Sewa", description: "Government service preparation", questions: 245, color: "bg-nepal-red" },
-    { id: "General Knowledge", name: "General Knowledge", description: "Current affairs & GK", questions: 156, color: "bg-nepal-gold" },
-    { id: "Science", name: "Science", description: "Physics, Chemistry, Biology", questions: 134, color: "bg-success" },
-    { id: "Mathematics", name: "Mathematics", description: "Arithmetic to Advanced", questions: 178, color: "bg-warning" },
-    { id: "English", name: "English", description: "Grammar & Comprehension", questions: 167, color: "bg-primary" },
-    { id: "Nepali", name: "Nepali", description: "Literature & Grammar", questions: 145, color: "bg-destructive" },
+    { id: "lok-sewa", name: "Lok Sewa", description: "Government service preparation", questions: 245, color: "bg-nepal-red" },
+    { id: "general", name: "General Knowledge", description: "Current affairs & GK", questions: 156, color: "bg-nepal-gold" },
+    { id: "science", name: "Science", description: "Physics, Chemistry, Biology", questions: 134, color: "bg-success" },
+    { id: "math", name: "Mathematics", description: "Arithmetic to Advanced", questions: 178, color: "bg-warning" },
+    { id: "english", name: "English", description: "Grammar & Comprehension", questions: 167, color: "bg-primary" },
+    { id: "nepali", name: "Nepali", description: "Literature & Grammar", questions: 145, color: "bg-destructive" },
   ],
   np: [
-    { id: "Lok Sewa", name: "लोक सेवा", description: "सरकारी सेवा तयारी", questions: 245, color: "bg-nepal-red" },
-    { id: "General Knowledge", name: "सामान्य ज्ञान", description: "समसामयिक र सामान्य ज्ञान", questions: 156, color: "bg-nepal-gold" },
-    { id: "Science", name: "विज्ञान", description: "भौतिक, रसायन, जीवविज्ञान", questions: 134, color: "bg-success" },
-    { id: "Mathematics", name: "गणित", description: "अंकगणितदेखि उन्नत सम्म", questions: 178, color: "bg-warning" },
-    { id: "English", name: "अंग्रेजी", description: "व्याकरण र बुझाइ", questions: 167, color: "bg-primary" },
-    { id: "Nepali", name: "नेपाली", description: "साहित्य र व्याकरण", questions: 145, color: "bg-destructive" },
+    { id: "lok-sewa", name: "लोक सेवा", description: "सरकारी सेवा तयारी", questions: 245, color: "bg-nepal-red" },
+    { id: "general", name: "सामान्य ज्ञान", description: "समसामयिक र सामान्य ज्ञान", questions: 156, color: "bg-nepal-gold" },
+    { id: "science", name: "विज्ञान", description: "भौतिक, रसायन, जीवविज्ञान", questions: 134, color: "bg-success" },
+    { id: "math", name: "गणित", description: "अंकगणितदेखि उन्नत सम्म", questions: 178, color: "bg-warning" },
+    { id: "english", name: "अंग्रेजी", description: "व्याकरण र बुझाइ", questions: 167, color: "bg-primary" },
+    { id: "nepali", name: "नेपाली", description: "साहित्य र व्याकरण", questions: 145, color: "bg-destructive" },
   ]
 };
 
