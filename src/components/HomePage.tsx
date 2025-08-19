@@ -42,12 +42,10 @@ const upcomingExams = {
   en: [
     { name: "Lok Sewa - Officer Level", date: "March 15, 2024", type: "Government" },
     { name: "Banking Service", date: "May 10, 2024", type: "Financial" },
-    { name: "Teaching License", date: "June 5, 2024", type: "Education" },
   ],
   np: [
     { name: "लोक सेवा - अधिकृत तह", date: "मार्च १५, २०२४", type: "सरकारी" },
     { name: "बैंकिङ सेवा", date: "मे १०, २०२४", type: "वित्तीय" },
-    { name: "शिक्षण इजाजतपत्र", date: "जुन ५, २०२४", type: "शिक्षा" },
   ]
 };
 
@@ -144,26 +142,58 @@ export const HomePage = ({ language, onNavigate }: HomePageProps) => {
         <h3 className="text-lg font-semibold text-foreground">
           {language === "en" ? "Upcoming Exams" : "आगामी परीक्षाहरू"}
         </h3>
-        <div className="space-y-3">
-          {upcomingExams[language].map((exam, index) => (
-            <Card key={index} className="glass hover:shadow-soft transition-smooth">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-foreground nepali-text">{exam.name}</h4>
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Calendar size={14} />
-                      <span className="nepali-text">{exam.date}</span>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <Card key={i} className="glass">
+                <CardContent className="p-4">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : upcomingExams.length > 0 ? (
+          <div className="space-y-3">
+            {upcomingExams.map((exam) => (
+              <Card key={exam.id} className="glass hover:shadow-soft transition-smooth">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-foreground nepali-text">{exam.name}</h4>
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Calendar size={14} />
+                        <span className="nepali-text">
+                          {new Date(exam.date).toLocaleDateString(language === 'en' ? 'en-US' : 'ne-NP', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full nepali-text">
+                      {exam.type}
                     </div>
                   </div>
-                  <div className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full nepali-text">
-                    {exam.type}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="glass">
+            <CardContent className="p-8 text-center">
+              <Calendar size={48} className="mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground nepali-text">
+                {language === "en" 
+                  ? "No upcoming exams scheduled" 
+                  : "कुनै आगामी परीक्षाहरू तालिकामा छैनन्"}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

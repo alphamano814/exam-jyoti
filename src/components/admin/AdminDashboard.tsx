@@ -7,12 +7,13 @@ import { supabase } from '@/integrations/supabase/client'
 import { useAdmin } from '@/hooks/useAdmin'
 import { QuestionUpload } from './QuestionUpload'
 import { QuestionManagement } from './QuestionManagement'
+import { ExamManagement } from './ExamManagement'
 import { LogOut, BookOpen, Users, TrendingUp, Plus } from 'lucide-react'
 
 interface AdminStats {
   totalQuestions: number
   totalUsers: number
-  totalQuizzes: number
+  successRate: string
   questionsByCategory: Record<string, number>
 }
 
@@ -21,7 +22,7 @@ export const AdminDashboard = () => {
   const [stats, setStats] = useState<AdminStats>({
     totalQuestions: 0,
     totalUsers: 0,
-    totalQuizzes: 0,
+    successRate: '--',
     questionsByCategory: {}
   })
   const [loading, setLoading] = useState(true)
@@ -42,10 +43,6 @@ export const AdminDashboard = () => {
         .from('users')
         .select('*', { count: 'exact', head: true })
 
-      // Fetch total quiz results
-      const { count: quizzesCount } = await supabase
-        .from('quiz_results')
-        .select('*', { count: 'exact', head: true })
 
       // Fetch questions by category
       const { data: categoryData } = await supabase
@@ -60,7 +57,7 @@ export const AdminDashboard = () => {
       setStats({
         totalQuestions: questionsCount || 0,
         totalUsers: usersCount || 0,
-        totalQuizzes: quizzesCount || 0,
+        successRate: '--',
         questionsByCategory
       })
     } catch (error) {
@@ -96,6 +93,7 @@ export const AdminDashboard = () => {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="questions">Questions</TabsTrigger>
+            <TabsTrigger value="exams">Exams</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
@@ -126,12 +124,12 @@ export const AdminDashboard = () => {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Quiz Attempts</CardTitle>
+                  <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{loading ? '...' : stats.totalQuizzes}</div>
-                  <p className="text-xs text-muted-foreground">Total quiz attempts</p>
+                  <div className="text-2xl font-bold">{loading ? '...' : stats.successRate}</div>
+                  <p className="text-xs text-muted-foreground">Average success rate</p>
                 </CardContent>
               </Card>
             </div>
@@ -157,6 +155,10 @@ export const AdminDashboard = () => {
           <TabsContent value="questions" className="space-y-6">
             <QuestionUpload />
             <QuestionManagement />
+          </TabsContent>
+
+          <TabsContent value="exams" className="space-y-6">
+            <ExamManagement />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
