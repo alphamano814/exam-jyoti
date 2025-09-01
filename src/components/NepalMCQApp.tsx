@@ -26,13 +26,23 @@ export const NepalMCQApp = () => {
             .from('users')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
           if (data) {
             setUserProfile(data);
+          } else if (error) {
+            console.log('No user profile found, using auth data');
           }
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          console.log('Error fetching user profile, using fallback:', error);
+          // Fallback to auth user data
+          setUserProfile({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || 'User',
+            total_quizzes: 0,
+            highest_score: 0
+          });
         }
       }
     };
