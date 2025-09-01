@@ -12,20 +12,26 @@ interface MCQPageProps {
 
 const categories = {
   en: [
-    { id: "lok-sewa", name: "Lok Sewa", description: "Government service preparation", questions: 245, color: "bg-nepal-red" },
-    { id: "general", name: "General Knowledge", description: "Current affairs & GK", questions: 156, color: "bg-nepal-gold" },
-    { id: "science", name: "Science", description: "Physics, Chemistry, Biology", questions: 134, color: "bg-success" },
-    { id: "math", name: "Mathematics", description: "Arithmetic to Advanced", questions: 178, color: "bg-warning" },
-    { id: "english", name: "English", description: "Grammar & Comprehension", questions: 167, color: "bg-primary" },
-    { id: "nepali", name: "Nepali", description: "Literature & Grammar", questions: 145, color: "bg-destructive" },
+    { id: "universe", name: "Universe", description: "Astronomy & Space Science", questions: 245, color: "bg-nepal-red" },
+    { id: "geography", name: "Geography", description: "World & Physical Geography", questions: 156, color: "bg-nepal-gold" },
+    { id: "world-history", name: "World History", description: "Global Historical Events", questions: 134, color: "bg-success" },
+    { id: "nepal-history", name: "Nepal History", description: "Nepal's Historical Journey", questions: 178, color: "bg-warning" },
+    { id: "culture-society", name: "Culture and Society", description: "Social Sciences & Culture", questions: 167, color: "bg-primary" },
+    { id: "economy", name: "Economy", description: "Economics & Financial Studies", questions: 145, color: "bg-destructive" },
+    { id: "health-technology", name: "Health and Technology", description: "Medical Science & Tech", questions: 198, color: "bg-nepal-blue" },
+    { id: "ecosystem", name: "Eco System", description: "Environment & Ecology", questions: 212, color: "bg-success" },
+    { id: "international-relations", name: "International Relations", description: "Global Politics & Diplomacy", questions: 187, color: "bg-nepal-gold" },
   ],
   np: [
-    { id: "lok-sewa", name: "लोक सेवा", description: "सरकारी सेवा तयारी", questions: 245, color: "bg-nepal-red" },
-    { id: "general", name: "सामान्य ज्ञान", description: "समसामयिक र सामान्य ज्ञान", questions: 156, color: "bg-nepal-gold" },
-    { id: "science", name: "विज्ञान", description: "भौतिक, रसायन, जीवविज्ञान", questions: 134, color: "bg-success" },
-    { id: "math", name: "गणित", description: "अंकगणितदेखि उन्नत सम्म", questions: 178, color: "bg-warning" },
-    { id: "english", name: "अंग्रेजी", description: "व्याकरण र बुझाइ", questions: 167, color: "bg-primary" },
-    { id: "nepali", name: "नेपाली", description: "साहित्य र व्याकरण", questions: 145, color: "bg-destructive" },
+    { id: "universe", name: "ब्रह्माण्ड", description: "खगोल विज्ञान र अन्तरिक्ष", questions: 245, color: "bg-nepal-red" },
+    { id: "geography", name: "भूगोल", description: "विश्व र भौतिक भूगोल", questions: 156, color: "bg-nepal-gold" },
+    { id: "world-history", name: "विश्व इतिहास", description: "विश्वव्यापी ऐतिहासिक घटनाहरू", questions: 134, color: "bg-success" },
+    { id: "nepal-history", name: "नेपाल इतिहास", description: "नेपालको ऐतिहासिक यात्रा", questions: 178, color: "bg-warning" },
+    { id: "culture-society", name: "संस्कृति र समाज", description: "सामाजिक विज्ञान र संस्कृति", questions: 167, color: "bg-primary" },
+    { id: "economy", name: "अर्थतन्त्र", description: "अर्थशास्त्र र वित्तीय अध्ययन", questions: 145, color: "bg-destructive" },
+    { id: "health-technology", name: "स्वास्थ्य र प्रविधि", description: "चिकित्सा विज्ञान र प्रविधि", questions: 198, color: "bg-nepal-blue" },
+    { id: "ecosystem", name: "पारिस्थितिकी तन्त्र", description: "वातावरण र पारिस्थितिकी", questions: 212, color: "bg-success" },
+    { id: "international-relations", name: "अन्तर्राष्ट्रिय सम्बन्ध", description: "विश्वव्यापी राजनीति र कूटनीति", questions: 187, color: "bg-nepal-gold" },
   ]
 };
 
