@@ -171,13 +171,15 @@ export const QuestionUpload = () => {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lok-sewa">Lok Sewa</SelectItem>
-                      <SelectItem value="general-knowledge">General Knowledge</SelectItem>
-                      <SelectItem value="current-affairs">Current Affairs</SelectItem>
-                      <SelectItem value="science">Science</SelectItem>
-                      <SelectItem value="mathematics">Mathematics</SelectItem>
-                      <SelectItem value="english">English</SelectItem>
-                      <SelectItem value="nepali">Nepali</SelectItem>
+                      <SelectItem value="universe">Universe</SelectItem>
+                      <SelectItem value="geography">Geography</SelectItem>
+                      <SelectItem value="world-history">World History</SelectItem>
+                      <SelectItem value="nepal-history">Nepal History</SelectItem>
+                      <SelectItem value="culture-society">Culture and society</SelectItem>
+                      <SelectItem value="economy">Economy</SelectItem>
+                      <SelectItem value="health-technology">Health and technology</SelectItem>
+                      <SelectItem value="eco-system">Eco system</SelectItem>
+                      <SelectItem value="international-relations">International Relations</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
