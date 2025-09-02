@@ -46,6 +46,8 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [currentSet, setCurrentSet] = useState(1);
   const [totalScore, setTotalScore] = useState(0);
   const [usedQuestionIds, setUsedQuestionIds] = useState<string[]>([]);
+  const [showScorecard, setShowScorecard] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
@@ -206,6 +208,76 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
       );
     }
 
+    // Show scorecard when quiz is completed
+    if (showScorecard) {
+      const finalScore = totalScore;
+      const percentage = Math.round((finalScore / 10) * 100);
+      
+      return (
+        <div className="text-center space-y-6 pb-20">
+          <Card className="glass p-8">
+            <CardContent className="space-y-6">
+              <Trophy size={64} className="mx-auto text-nepal-gold" />
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold">
+                  {language === "en" ? "Quiz Completed!" : "क्विज सम्पन्न!"}
+                </h2>
+                <div className="text-center space-y-2">
+                  <div className="text-6xl font-bold text-primary">
+                    {finalScore}/10
+                  </div>
+                  <p className="text-xl text-muted-foreground">
+                    {language === "en" ? `${percentage}% Correct` : `${percentage}% सही`}
+                  </p>
+                </div>
+                
+                <div className="w-full bg-muted rounded-full h-3">
+                  <div 
+                    className="h-full gradient-nepal rounded-full transition-all duration-1000"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+                
+                <p className="text-lg text-muted-foreground">
+                  {language === "en" 
+                    ? finalScore >= 7 ? "Excellent work! 🎉" : finalScore >= 5 ? "Good job! 👍" : "Keep practicing! 💪"
+                    : finalScore >= 7 ? "उत्कृष्ट काम! 🎉" : finalScore >= 5 ? "राम्रो काम! 👍" : "अभ्यास जारी राख्नुहोस्! 💪"}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
+                <Button 
+                  variant="nepal" 
+                  className="w-full" 
+                  onClick={() => {
+                    setShowScorecard(false);
+                    setQuizCompleted(false);
+                    setCurrentQuestion(0);
+                    setScore(0);
+                    setCurrentSet(prev => prev + 1);
+                    startNewSet();
+                  }}
+                >
+                  {language === "en" ? "Start New Set" : "नयाँ सेट सुरु गर्नुहोस्"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => {
+                    setShowScorecard(false);
+                    setQuizCompleted(false);
+                    goBack();
+                  }}
+                >
+                  {language === "en" ? "Choose Different Category" : "फरक श्रेणी छान्नुहोस्"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     const question = questions[currentQuestion];
     
     const handleAnswerSelect = (index: number) => {
@@ -225,13 +297,13 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           setShowResult(false);
           setCurrentQuestion(prev => prev + 1);
         } else {
-          // Set completed - show completion screen
-          setTotalScore(prev => prev + score);
+          // Quiz completed - show scorecard
+          const finalScore = score + (index === correctIndex ? 1 : 0);
+          setTotalScore(prev => prev + finalScore);
+          setShowScorecard(true);
+          setQuizCompleted(true);
           setShowResult(false);
           setSelectedAnswer(null);
-          setCurrentQuestion(0);
-          setScore(0);
-          setCurrentSet(prev => prev + 1);
         }
       }, 1500);
     };
