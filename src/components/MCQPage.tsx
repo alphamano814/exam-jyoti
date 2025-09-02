@@ -64,14 +64,14 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           setUsedQuestionIds([]);
           const randomQuestions = [...allQuestions]
             .sort(() => Math.random() - 0.5)
-            .slice(0, Math.min(10, allQuestions.length));
+            .slice(0, 10);
           setQuestions(randomQuestions);
           setUsedQuestionIds(randomQuestions.map(q => q.id));
         } else {
           // Select 10 random questions from available ones
           const randomQuestions = [...availableQuestions]
             .sort(() => Math.random() - 0.5)
-            .slice(0, Math.min(10, availableQuestions.length));
+            .slice(0, 10);
           setQuestions(randomQuestions);
           setUsedQuestionIds(prev => [...prev, ...randomQuestions.map(q => q.id)]);
         }
@@ -193,23 +193,25 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
       if (index === correctIndex) {
         setScore(prev => prev + 1);
       }
+
+      // Auto-advance after 1.5 seconds
+      setTimeout(() => {
+        if (currentQuestion < questions.length - 1) {
+          setSelectedAnswer(null);
+          setShowResult(false);
+          setCurrentQuestion(prev => prev + 1);
+        } else {
+          // Set completed - show completion screen
+          setTotalScore(prev => prev + score);
+          setShowResult(false);
+          setSelectedAnswer(null);
+          setCurrentQuestion(0);
+          setScore(0);
+          setCurrentSet(prev => prev + 1);
+        }
+      }, 1500);
     };
 
-    const nextQuestion = () => {
-      if (currentQuestion < questions.length - 1) {
-        setSelectedAnswer(null);
-        setShowResult(false);
-        setCurrentQuestion(prev => prev + 1);
-      } else {
-        // Set completed - show completion screen
-        setTotalScore(prev => prev + score);
-        setShowResult(false);
-        setSelectedAnswer(null);
-        setCurrentQuestion(0);
-        setScore(0);
-        setCurrentSet(prev => prev + 1);
-      }
-    };
 
     return (
       <div className="space-y-6 pb-20">
@@ -299,26 +301,6 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
               )
             })}
 
-            {showResult && (
-              <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                <h4 className="font-medium text-foreground mb-2 nepali-text">
-                  {language === "en" ? "Explanation:" : "व्याख्या:"}
-                </h4>
-                <p className="text-sm text-muted-foreground nepali-text">
-                  {question.explanation}
-                </p>
-                <Button 
-                  variant="nepal" 
-                  size="sm" 
-                  className="mt-4" 
-                  onClick={nextQuestion}
-                >
-                  {currentQuestion < questions.length - 1 
-                    ? (language === "en" ? "Next Question" : "अर्को प्रश्न")
-                    : (language === "en" ? "Finish Quiz" : "क्विज समाप्त गर्नुहोस्")}
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
