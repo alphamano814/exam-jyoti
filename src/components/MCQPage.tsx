@@ -49,6 +49,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
 
   const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
+    console.log('Fetching questions for:', { categoryName, language, isNewSet });
     try {
       // Use the exact category name as stored in database and filter by language
       const { data: allQuestions, error } = await supabase
@@ -56,6 +57,8 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
         .select('*')
         .eq('category', categoryName)
         .eq('language', language);
+
+      console.log('Query result:', { allQuestions, error, count: allQuestions?.length });
 
       if (error) throw error;
       
@@ -91,6 +94,21 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
       setLoading(false);
     }
   };
+
+  // Reset state when language changes
+  useEffect(() => {
+    if (selectedCategory) {
+      setSelectedCategory(null);
+      setCurrentQuestion(0);
+      setScore(0);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setCurrentSet(1);
+      setTotalScore(0);
+      setUsedQuestionIds([]);
+      setQuestions([]);
+    }
+  }, [language]);
 
   const startNewSet = () => {
     const categoryName = categories[language].find(cat => cat.id === selectedCategory)?.name;
