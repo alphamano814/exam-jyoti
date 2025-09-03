@@ -175,10 +175,10 @@ export const QuestionUpload = () => {
                       <SelectItem value="Geography">Geography</SelectItem>
                       <SelectItem value="World History">World History</SelectItem>
                       <SelectItem value="Nepal History">Nepal History</SelectItem>
-                      <SelectItem value="Culture and society">Culture and Society</SelectItem>
+                      <SelectItem value="Culture and society">Culture and society</SelectItem>
                       <SelectItem value="Economy">Economy</SelectItem>
-                      <SelectItem value="Health and technology">Health and Technology</SelectItem>
-                      <SelectItem value="Eco system">Eco System</SelectItem>
+                      <SelectItem value="Health and technology">Health and technology</SelectItem>
+                      <SelectItem value="Eco system">Eco system</SelectItem>
                       <SelectItem value="International Relations">International Relations</SelectItem>
                     </SelectContent>
                   </Select>
