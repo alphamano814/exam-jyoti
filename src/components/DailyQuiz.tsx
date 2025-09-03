@@ -306,6 +306,8 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+  if (!currentQuestion) return null;
+
   const options = [
     { key: "A", value: currentQuestion.option_a },
     { key: "B", value: currentQuestion.option_b },
