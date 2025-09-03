@@ -5,6 +5,7 @@ import { HomePage } from "./HomePage";
 import { MCQPage } from "./MCQPage";
 import { AllQuestionsPage } from "./AllQuestionsPage";
 import { AuthForm } from "./AuthForm";
+import { DailyQuiz } from "./DailyQuiz";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, User, BookOpen, LogOut } from "lucide-react";
@@ -107,25 +108,7 @@ export const NepalMCQApp = () => {
 
 // Placeholder components for other pages
 const DailyQuizPage = ({ language }: { language: "en" | "np" }) => (
-  <div className="text-center space-y-4 pb-20">
-    <Card className="glass p-8">
-      <CardContent className="space-y-4">
-        <Calendar size={48} className="mx-auto text-nepal-gold" />
-        <h2 className="text-2xl font-bold">
-          {language === "en" ? "Daily Quiz" : "दैनिक क्विज"}
-        </h2>
-        <p className="text-muted-foreground nepali-text">
-          {language === "en" 
-            ? "Today's challenge: 10 questions from mixed categories" 
-            : "आजको चुनौती: मिश्रित श्रेणीबाट १० प्रश्न"}
-        </p>
-        <div className="text-3xl font-bold text-primary">05:30</div>
-        <p className="text-sm text-muted-foreground">
-          {language === "en" ? "Time remaining to start today's quiz" : "आजको क्विज सुरु गर्न बाँकी समय"}
-        </p>
-      </CardContent>
-    </Card>
-  </div>
+  <DailyQuiz language={language} />
 );
 
 const LeaderboardPage = ({ language }: { language: "en" | "np" }) => (
