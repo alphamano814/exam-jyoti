@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Trophy, Clock, CheckCircle, XCircle, Bookmark, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MCQPageProps {
   language: "en" | "np";
@@ -48,12 +50,13 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [usedQuestionIds, setUsedQuestionIds] = useState<string[]>([]);
   const [showScorecard, setShowScorecard] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
     console.log('Fetching questions for:', { categoryName, language, isNewSet });
     try {
-      // Use the exact category name as stored in database and filter by language
       const { data: allQuestions, error } = await supabase
         .from('questions')
         .select('*')
@@ -65,13 +68,11 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
       if (error) throw error;
       
       if (allQuestions && allQuestions.length > 0) {
-        // Filter out already used questions if continuing with new set
         const availableQuestions = isNewSet 
           ? allQuestions.filter(q => !usedQuestionIds.includes(q.id))
           : allQuestions;
         
         if (availableQuestions.length === 0) {
-          // If no unused questions, reset and start over
           setUsedQuestionIds([]);
           const randomQuestions = [...allQuestions]
             .sort(() => Math.random() - 0.5)
@@ -79,7 +80,6 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           setQuestions(randomQuestions);
           setUsedQuestionIds(randomQuestions.map(q => q.id));
         } else {
-          // Select 10 random questions from available ones
           const randomQuestions = [...availableQuestions]
             .sort(() => Math.random() - 0.5)
             .slice(0, 10);
@@ -112,6 +112,46 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
     }
   }, [language]);
 
+  const saveQuizResults = async () => {
+    if (!user) return;
+    
+    try {
+      // Save quiz results to quiz_results table
+      await supabase.from("quiz_results").insert({
+        user_id: user.id,
+        score,
+        total_questions: questions.length,
+        questions_attempted: questions.map((q, index) => ({
+          question_id: q.id,
+          user_answer: index <= currentQuestion ? "answered" : "not_answered",
+          is_correct: index < score
+        }))
+      });
+
+      // Update leaderboard points using the database function
+      await supabase.rpc("update_leaderboard_points", {
+        p_user_id: user.id,
+        p_quiz_type: "normal",
+        p_correct_answers: score,
+        p_total_questions: questions.length
+      });
+
+      toast({
+        title: language === "en" ? "Results Saved!" : "परिणाम सुरक्षित!",
+        description: language === "en" 
+          ? `Earned ${(score * 0.25).toFixed(2)} points!` 
+          : `${(score * 0.25).toFixed(2)} अंक कमाइयो!`,
+      });
+    } catch (error) {
+      console.error("Error saving quiz results:", error);
+      toast({
+        title: language === "en" ? "Error" : "त्रुटि",
+        description: language === "en" ? "Failed to save results" : "परिणाम सुरक्षित गर्न असफल",
+        variant: "destructive",
+      });
+    }
+  };
+
   const startNewSet = () => {
     const categoryName = categories[language].find(cat => cat.id === selectedCategory)?.name;
     if (categoryName) {
@@ -130,57 +170,37 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
     setUsedQuestionIds([]);
   };
 
+  const handleAnswerSelect = (index: number) => {
+    setSelectedAnswer(index);
+    setShowResult(true);
+    
+    const correctIndex = questions[currentQuestion].correct_option.charCodeAt(0) - 65;
+    if (index === correctIndex) {
+      setScore(prev => prev + 1);
+    }
+
+    setTimeout(() => {
+      if (currentQuestion < questions.length - 1) {
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setCurrentQuestion(prev => prev + 1);
+      } else {
+        const finalScore = score + (index === correctIndex ? 1 : 0);
+        setTotalScore(prev => prev + finalScore);
+        saveQuizResults();
+        setShowScorecard(true);
+        setQuizCompleted(true);
+        setShowResult(false);
+        setSelectedAnswer(null);
+      }
+    }, 1500);
+  };
+
   if (selectedCategory) {
     if (loading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nepal-primary"></div>
-        </div>
-      );
-    }
-
-    // Show set completion screen when a set is finished
-    if (currentQuestion === 0 && currentSet > 1 && questions.length > 0) {
-      return (
-        <div className="text-center space-y-6 pb-20">
-          <Card className="glass p-8">
-            <CardContent className="space-y-6">
-              <Trophy size={48} className="mx-auto text-nepal-gold" />
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold">
-                  {language === "en" ? `Set ${currentSet - 1} Completed!` : `सेट ${currentSet - 1} सम्पन्न!`}
-                </h2>
-                <p className="text-lg font-medium text-primary">
-                  {language === "en" ? `Score: ${totalScore}/10` : `अंक: ${totalScore}/10`}
-                </p>
-              </div>
-              
-              {totalScore > 0 && (
-                <div className="text-center">
-                  <p className="text-muted-foreground nepali-text">
-                    {language === "en" ? `Total Score: ${totalScore}` : `जम्मा अंक: ${totalScore}`}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
-                <Button 
-                  variant="nepal" 
-                  className="w-full" 
-                  onClick={startNewSet}
-                >
-                  {language === "en" ? "Start New Set" : "नयाँ सेट सुरु गर्नुहोस्"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  onClick={goBack}
-                >
-                  {language === "en" ? "Choose Different Category" : "फरक श्रेणी छान्नुहोस्"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       );
     }
@@ -237,12 +257,6 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                
-                <p className="text-lg text-muted-foreground">
-                  {language === "en" 
-                    ? finalScore >= 7 ? "Excellent work! 🎉" : finalScore >= 5 ? "Good job! 👍" : "Keep practicing! 💪"
-                    : finalScore >= 7 ? "उत्कृष्ट काम! 🎉" : finalScore >= 5 ? "राम्रो काम! 👍" : "अभ्यास जारी राख्नुहोस्! 💪"}
-                </p>
               </div>
 
               <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
@@ -280,35 +294,6 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
 
     const question = questions[currentQuestion];
     
-    const handleAnswerSelect = (index: number) => {
-      setSelectedAnswer(index);
-      setShowResult(true);
-      
-      // Convert A,B,C,D to 0,1,2,3
-      const correctIndex = question.correct_option.charCodeAt(0) - 65;
-      if (index === correctIndex) {
-        setScore(prev => prev + 1);
-      }
-
-      // Auto-advance after 1.5 seconds
-      setTimeout(() => {
-        if (currentQuestion < questions.length - 1) {
-          setSelectedAnswer(null);
-          setShowResult(false);
-          setCurrentQuestion(prev => prev + 1);
-        } else {
-          // Quiz completed - show scorecard
-          const finalScore = score + (index === correctIndex ? 1 : 0);
-          setTotalScore(prev => prev + finalScore);
-          setShowScorecard(true);
-          setQuizCompleted(true);
-          setShowResult(false);
-          setSelectedAnswer(null);
-        }
-      }, 1500);
-    };
-
-
     return (
       <div className="space-y-6 pb-20">
         {/* Quiz Header */}
@@ -367,7 +352,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           </CardHeader>
           <CardContent className="space-y-3">
             {[question.option_a, question.option_b, question.option_c, question.option_d].map((option, index) => {
-              const correctIndex = question.correct_option.charCodeAt(0) - 65; // Convert A,B,C,D to 0,1,2,3
+              const correctIndex = question.correct_option.charCodeAt(0) - 65;
               return (
                 <Button
                   key={index}
@@ -381,22 +366,21 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
                 onClick={() => !showResult && handleAnswerSelect(index)}
                 disabled={showResult}
               >
-                  <div className="flex items-center gap-3 w-full">
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium ${
-                      showResult && index === correctIndex ? "border-white bg-white/20" :
-                      showResult && selectedAnswer === index && index !== correctIndex ? "border-white bg-white/20" :
-                      "border-current"
-                    }`}>
-                      {showResult && index === correctIndex ? <CheckCircle size={16} /> :
-                       showResult && selectedAnswer === index && index !== correctIndex ? <XCircle size={16} /> :
-                       String.fromCharCode(65 + index)}
-                    </div>
-                    <span className="flex-1 nepali-text">{option}</span>
+                <div className="flex items-center gap-3 w-full">
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium ${
+                    showResult && index === correctIndex ? "border-white bg-white/20" :
+                    showResult && selectedAnswer === index && index !== correctIndex ? "border-white bg-white/20" :
+                    "border-current"
+                  }`}>
+                    {showResult && index === correctIndex ? <CheckCircle size={16} /> :
+                     showResult && selectedAnswer === index && index !== correctIndex ? <XCircle size={16} /> :
+                     String.fromCharCode(65 + index)}
                   </div>
-                </Button>
+                  <span className="flex-1 nepali-text">{option}</span>
+                </div>
+              </Button>
               )
             })}
-
           </CardContent>
         </Card>
       </div>

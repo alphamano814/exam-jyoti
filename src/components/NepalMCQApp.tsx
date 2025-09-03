@@ -6,6 +6,7 @@ import { MCQPage } from "./MCQPage";
 import { AllQuestionsPage } from "./AllQuestionsPage";
 import { AuthForm } from "./AuthForm";
 import { DailyQuiz } from "./DailyQuiz";
+import { Leaderboard } from "./Leaderboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, User, BookOpen, LogOut } from "lucide-react";
@@ -112,38 +113,7 @@ const DailyQuizPage = ({ language }: { language: "en" | "np" }) => (
 );
 
 const LeaderboardPage = ({ language }: { language: "en" | "np" }) => (
-  <div className="space-y-4 pb-20">
-    <div className="text-center space-y-2">
-      <Trophy size={48} className="mx-auto text-nepal-gold" />
-      <h2 className="text-2xl font-bold">
-        {language === "en" ? "Leaderboard" : "लिडरबोर्ड"}
-      </h2>
-      <p className="text-muted-foreground nepali-text">
-        {language === "en" ? "Top performers this week" : "यस हप्ताका शीर्ष प्रदर्शनकर्ताहरू"}
-      </p>
-    </div>
-
-    <div className="space-y-3">
-      {[1, 2, 3, 4, 5].map((rank) => (
-        <Card key={rank} className="glass">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-              rank === 1 ? "gradient-nepal" : rank === 2 ? "gradient-sunset" : rank === 3 ? "gradient-success" : "bg-muted"
-            }`}>
-              {rank}
-            </div>
-            <div className="flex-1">
-              <div className="font-medium">Student {rank}</div>
-              <div className="text-sm text-muted-foreground">
-                {950 - rank * 50} {language === "en" ? "points" : "अंक"}
-              </div>
-            </div>
-            {rank <= 3 && <Trophy size={20} className="text-nepal-gold" />}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  </div>
+  <Leaderboard language={language} />
 );
 
 const ProfilePage = ({ language, user, authUser, onLogout }: { 

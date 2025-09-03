@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      leaderboard: {
+        Row: {
+          created_at: string
+          daily_quiz_points: number
+          id: string
+          quiz_points: number
+          total_daily_quizzes_completed: number
+          total_points: number
+          total_quizzes_completed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_quiz_points?: number
+          id?: string
+          quiz_points?: number
+          total_daily_quizzes_completed?: number
+          total_points?: number
+          total_quizzes_completed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_quiz_points?: number
+          id?: string
+          quiz_points?: number
+          total_daily_quizzes_completed?: number
+          total_points?: number
+          total_quizzes_completed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       questions: {
         Row: {
           category: string | null
@@ -132,7 +168,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_leaderboard_points: {
+        Args: {
+          p_correct_answers: number
+          p_quiz_type: string
+          p_total_questions: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

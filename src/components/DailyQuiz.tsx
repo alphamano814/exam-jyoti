@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Trophy, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Question {
   id: string;
@@ -82,6 +83,7 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [timeToNext, setTimeToNext] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Calculate time until next quiz (midnight)
   useEffect(() => {
@@ -159,6 +161,46 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
     }
   };
 
+  const saveDailyQuizResults = async () => {
+    if (!user) return;
+    
+    try {
+      // Save quiz results to quiz_results table
+      await supabase.from("quiz_results").insert({
+        user_id: user.id,
+        score,
+        total_questions: questions.length,
+        questions_attempted: questions.map((q, index) => ({
+          question_id: q.id,
+          user_answer: index < currentQuestionIndex ? "answered" : "not_answered",
+          is_correct: index < score
+        }))
+      });
+
+      // Update leaderboard points using the database function
+      await supabase.rpc("update_leaderboard_points", {
+        p_user_id: user.id,
+        p_quiz_type: "daily",
+        p_correct_answers: score,
+        p_total_questions: questions.length
+      });
+
+      toast({
+        title: language === "en" ? "Results Saved!" : "परिणाम सुरक्षित!",
+        description: language === "en" 
+          ? `Earned ${(score * 0.5).toFixed(2)} points!` 
+          : `${(score * 0.5).toFixed(2)} अंक कमाइयो!`,
+      });
+    } catch (error) {
+      console.error("Error saving daily quiz results:", error);
+      toast({
+        title: language === "en" ? "Error" : "त्रुटि",
+        description: language === "en" ? "Failed to save results" : "परिणाम सुरक्षित गर्न असफल",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchDailyQuestions();
   }, [language]);
@@ -180,6 +222,8 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
         setSelectedAnswer("");
         setShowExplanation(false);
       } else {
+        // Daily quiz completed - save points to leaderboard
+        saveDailyQuizResults();
         setQuizCompleted(true);
       }
     }, 3000);
