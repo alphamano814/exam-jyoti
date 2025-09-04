@@ -1,7 +1,6 @@
 import { Globe, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/hooks/useAdmin";
 
@@ -47,17 +46,16 @@ export const Header = ({ language, onLanguageToggle, username, userImage }: Head
           
           {/* Admin Link - Only visible to admin users */}
           {user && isAdmin && (
-            <Link to="/admin">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-nepal-primary hover:bg-nepal-primary/10 transition-bounce"
-                title="Admin Panel"
-              >
-                <Shield size={14} />
-                <span className="text-xs font-medium">Admin</span>
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-nepal-primary hover:bg-nepal-primary/10 transition-bounce"
+              title="Admin Panel"
+              onClick={() => window.location.href = '/admin'}
+            >
+              <Shield size={14} />
+              <span className="text-xs font-medium">Admin</span>
+            </Button>
           )}
           
           <Avatar className="w-8 h-8 border-2 border-primary/20">
