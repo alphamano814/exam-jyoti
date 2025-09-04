@@ -21,16 +21,38 @@ export const UpcomingExams = () => {
 
   useEffect(() => {
     fetchUpcomingExams()
+    
+    // Set up real-time subscription for exam updates
+    const subscription = supabase
+      .channel('upcoming_exams_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'upcoming_exams' }, 
+        () => {
+          // Refetch data whenever there's a change
+          fetchUpcomingExams()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchUpcomingExams = async () => {
     try {
+      setLoading(true)
       const { data, error } = await supabase
         .from('upcoming_exams')
         .select('*')
         .order('exam_date', { ascending: true })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      console.log('Fetched exams:', data)
       setExams(data || [])
     } catch (error) {
       console.error('Error fetching upcoming exams:', error)
@@ -79,9 +101,18 @@ export const UpcomingExams = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-primary" />
-        <h2 className="text-xl font-bold text-foreground">Upcoming Exams</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-bold text-foreground">Upcoming Exams</h2>
+        </div>
+        <button 
+          onClick={fetchUpcomingExams}
+          className="text-sm text-muted-foreground hover:text-foreground transition-smooth"
+          disabled={loading}
+        >
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
       </div>
       
       {exams.length === 0 ? (
