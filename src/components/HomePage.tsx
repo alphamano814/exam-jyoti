@@ -1,7 +1,19 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Calendar, Trophy, Users, Clock, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { format, parseISO, isPast, isToday, isTomorrow } from 'date-fns';
 import heroBanner from "@/assets/hero-banner.jpg";
+
+interface UpcomingExam {
+  id: string
+  title: string
+  description: string | null
+  exam_date: string
+  exam_time: string | null
+  venue: string | null
+}
 
 interface HomePageProps {
   language: "en" | "np";
@@ -38,21 +50,62 @@ const quickActions = {
   ]
 };
 
-const upcomingExams = {
-  en: [
-    { name: "Lok Sewa - Officer Level", date: "March 15, 2024", type: "Government" },
-    { name: "Banking Service", date: "May 10, 2024", type: "Financial" },
-    { name: "Teaching License", date: "June 5, 2024", type: "Education" },
-  ],
-  np: [
-    { name: "लोक सेवा - अधिकृत तह", date: "मार्च १५, २०२४", type: "सरकारी" },
-    { name: "बैंकिङ सेवा", date: "मे १०, २०२४", type: "वित्तीय" },
-    { name: "शिक्षण इजाजतपत्र", date: "जुन ५, २०२४", type: "शिक्षा" },
-  ]
-};
 
 export const HomePage = ({ language, onNavigate }: HomePageProps) => {
+  const [upcomingExams, setUpcomingExams] = useState<UpcomingExam[]>([])
+  const [loadingExams, setLoadingExams] = useState(true)
+  
   const currentQuote = motivationalQuotes[language][Math.floor(Math.random() * motivationalQuotes[language].length)];
+
+  useEffect(() => {
+    fetchUpcomingExams()
+    
+    // Set up real-time subscription for exam updates
+    const subscription = supabase
+      .channel('home_exams_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'upcoming_exams' }, 
+        () => {
+          fetchUpcomingExams()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const fetchUpcomingExams = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('upcoming_exams')
+        .select('*')
+        .order('exam_date', { ascending: true })
+        .limit(3) // Only show first 3 exams on home page
+
+      if (error) throw error
+      setUpcomingExams(data || [])
+    } catch (error) {
+      console.error('Error fetching upcoming exams:', error)
+    } finally {
+      setLoadingExams(false)
+    }
+  }
+
+  const getExamStatus = (examDate: string) => {
+    const date = parseISO(examDate)
+    
+    if (isPast(date)) {
+      return { text: language === "en" ? "Past" : "बितेको", color: "text-muted-foreground" }
+    } else if (isToday(date)) {
+      return { text: language === "en" ? "Today" : "आज", color: "text-destructive" }
+    } else if (isTomorrow(date)) {
+      return { text: language === "en" ? "Tomorrow" : "भोलि", color: "text-warning" }
+    } else {
+      return { text: language === "en" ? "Upcoming" : "आगामी", color: "text-success" }
+    }
+  }
 
   return (
     <div className="space-y-6 pb-20">
@@ -141,29 +194,84 @@ export const HomePage = ({ language, onNavigate }: HomePageProps) => {
 
       {/* Upcoming Exams */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground">
-          {language === "en" ? "Upcoming Exams" : "आगामी परीक्षाहरू"}
-        </h3>
-        <div className="space-y-3">
-          {upcomingExams[language].map((exam, index) => (
-            <Card key={index} className="glass hover:shadow-soft transition-smooth">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-foreground nepali-text">{exam.name}</h4>
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Calendar size={14} />
-                      <span className="nepali-text">{exam.date}</span>
-                    </div>
-                  </div>
-                  <div className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full nepali-text">
-                    {exam.type}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">
+            {language === "en" ? "Upcoming Exams" : "आगामी परीक्षाहरू"}
+          </h3>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onNavigate("upcoming-exams")}
+            className="text-xs"
+          >
+            {language === "en" ? "View All" : "सबै हेर्नुहोस्"}
+          </Button>
         </div>
+        
+        {loadingExams ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-4">
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : upcomingExams.length === 0 ? (
+          <Card className="glass">
+            <CardContent className="p-4 text-center">
+              <Calendar className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground nepali-text">
+                {language === "en" ? "No upcoming exams" : "कुनै आगामी परीक्षा छैन"}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {upcomingExams.map((exam) => {
+              const status = getExamStatus(exam.exam_date)
+              return (
+                <Card key={exam.id} className="glass hover:shadow-soft transition-smooth">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1 flex-1">
+                        <h4 className="font-medium text-foreground nepali-text">{exam.title}</h4>
+                        {exam.description && (
+                          <p className="text-xs text-muted-foreground nepali-text">{exam.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-muted-foreground text-sm">
+                          <div className="flex items-center gap-1">
+                            <Calendar size={12} />
+                            <span className="nepali-text">
+                              {format(parseISO(exam.exam_date), 'MMM d, yyyy')}
+                            </span>
+                          </div>
+                          {exam.exam_time && (
+                            <div className="flex items-center gap-1">
+                              <Clock size={12} />
+                              <span>{exam.exam_time}</span>
+                            </div>
+                          )}
+                          {exam.venue && (
+                            <div className="flex items-center gap-1">
+                              <MapPin size={12} />
+                              <span className="nepali-text">{exam.venue}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className={`px-2 py-1 bg-primary/10 text-xs rounded-full nepali-text ${status.color}`}>
+                        {status.text}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
