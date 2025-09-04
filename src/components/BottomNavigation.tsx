@@ -10,6 +10,7 @@ const navItems = [
   { id: "home", icon: Home, label: "Home", labelNepali: "होम" },
   { id: "mcqs", icon: BookOpen, label: "MCQs", labelNepali: "प्रश्नहरू" },
   { id: "daily-quiz", icon: Calendar, label: "Daily Quiz", labelNepali: "दैनिक क्विज" },
+  { id: "upcoming-exams", icon: Calendar, label: "Exams", labelNepali: "परीक्षाहरू" },
   { id: "leaderboard", icon: Trophy, label: "Leaderboard", labelNepali: "लिडरबोर्ड" },
   { id: "profile", icon: User, label: "Profile", labelNepali: "प्रोफाइल" },
 ];

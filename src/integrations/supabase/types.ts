@@ -133,6 +133,42 @@ export type Database = {
           },
         ]
       }
+      upcoming_exams: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          exam_date: string
+          exam_time: string | null
+          id: string
+          title: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          exam_date: string
+          exam_time?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          exam_date?: string
+          exam_time?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string

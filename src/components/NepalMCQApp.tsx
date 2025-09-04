@@ -7,6 +7,7 @@ import { AllQuestionsPage } from "./AllQuestionsPage";
 import { AuthForm } from "./AuthForm";
 import { DailyQuiz } from "./DailyQuiz";
 import { Leaderboard } from "./Leaderboard";
+import { UpcomingExams } from "./UpcomingExams";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, User, BookOpen, LogOut } from "lucide-react";
@@ -60,6 +61,8 @@ export const NepalMCQApp = () => {
         return <AllQuestionsPage language={language} onNavigate={handleNavigate} />;
       case "daily-quiz":
         return <DailyQuizPage language={language} />;
+      case "upcoming-exams":
+        return <UpcomingExams />;
       case "leaderboard":
         return <LeaderboardPage language={language} />;
       case "profile":

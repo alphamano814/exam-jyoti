@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { useAdmin } from '@/hooks/useAdmin'
 import { QuestionUpload } from './QuestionUpload'
 import { QuestionManagement } from './QuestionManagement'
+import { ExamManagement } from './ExamManagement'
 import { LogOut, BookOpen, Users, TrendingUp, Plus } from 'lucide-react'
 
 interface AdminStats {
@@ -96,6 +97,7 @@ export const AdminDashboard = () => {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="questions">Questions</TabsTrigger>
+            <TabsTrigger value="exams">Upcoming Exams</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
@@ -157,6 +159,10 @@ export const AdminDashboard = () => {
           <TabsContent value="questions" className="space-y-6">
             <QuestionUpload />
             <QuestionManagement />
+          </TabsContent>
+
+          <TabsContent value="exams" className="space-y-6">
+            <ExamManagement />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
