@@ -10,7 +10,7 @@ import { Leaderboard } from "./Leaderboard";
 import { UpcomingExams } from "./UpcomingExams";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Calendar, User, BookOpen, LogOut } from "lucide-react";
+import { Trophy, Calendar, User, BookOpen, LogOut, Info, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -125,6 +125,44 @@ const ProfilePage = ({ language, user, authUser, onLogout }: {
   authUser: any;
   onLogout: () => void;
 }) => {
+  const [stats, setStats] = useState({ totalQuizzes: 0, highestScore: 0 });
+  
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!authUser?.id) return;
+      
+      try {
+        // Fetch quiz results to calculate stats
+        const { data: quizResults } = await supabase
+          .from('quiz_results')
+          .select('score')
+          .eq('user_id', authUser.id);
+        
+        if (quizResults) {
+          const totalQuizzes = quizResults.length;
+          const highestScore = quizResults.length > 0 
+            ? Math.max(...quizResults.map(result => result.score))
+            : 0;
+          
+          setStats({ totalQuizzes, highestScore });
+          
+          // Update user profile with latest stats
+          await supabase
+            .from('users')
+            .update({ 
+              total_quizzes: totalQuizzes,
+              highest_score: highestScore 
+            })
+            .eq('id', authUser.id);
+        }
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+      }
+    };
+    
+    fetchUserStats();
+  }, [authUser?.id]);
+  
   // Get full name from database profile or auth metadata
   const fullName = user?.full_name || authUser?.user_metadata?.full_name || 'Student';
   
@@ -145,51 +183,44 @@ const ProfilePage = ({ language, user, authUser, onLogout }: {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-      <Card className="glass text-center">
-        <CardContent className="p-4">
-          <div className="text-2xl font-bold text-primary">
-            {user?.total_quizzes || 0}
-          </div>
-          <div className="text-sm text-muted-foreground nepali-text">
-            {language === "en" ? "Quizzes Completed" : "पूरा गरिएका क्विज"}
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="glass text-center">
-        <CardContent className="p-4">
-          <div className="text-2xl font-bold text-success">
-            {user?.highest_score || 0}
-          </div>
-          <div className="text-sm text-muted-foreground nepali-text">
-            {language === "en" ? "Highest Score" : "उच्चतम स्कोर"}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-
-    <Card className="glass">
-      <CardContent className="p-6 space-y-4">
-        <h3 className="text-lg font-semibold nepali-text">
-          {language === "en" ? "Study Progress" : "अध्ययन प्रगति"}
-        </h3>
-        <div className="space-y-3">
-          {["Lok Sewa", "General Knowledge", "Science"].map((subject, index) => (
-            <div key={subject} className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{subject}</span>
-                <span>{85 - index * 10}%</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full">
-                <div 
-                  className="h-full gradient-nepal rounded-full"
-                  style={{ width: `${85 - index * 10}%` }}
-                />
-              </div>
+        <Card className="glass text-center">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-primary">
+              {stats.totalQuizzes}
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="text-sm text-muted-foreground nepali-text">
+              {language === "en" ? "Quizzes Completed" : "पूरा गरिएका क्विज"}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="glass text-center">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-success">
+              {stats.highestScore}
+            </div>
+            <div className="text-sm text-muted-foreground nepali-text">
+              {language === "en" ? "Highest Score" : "उच्चतम स्कोर"}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Button 
+          variant="outline" 
+          className="w-full glass"
+        >
+          <Info size={16} className="mr-2" />
+          {language === "en" ? "About Us" : "हाम्रो बारेमा"}
+        </Button>
+        <Button 
+          variant="outline" 
+          className="w-full glass"
+        >
+          <MessageSquare size={16} className="mr-2" />
+          {language === "en" ? "Feedback" : "प्रतिक्रिया"}
+        </Button>
+      </div>
 
       <Button 
         variant="destructive" 
