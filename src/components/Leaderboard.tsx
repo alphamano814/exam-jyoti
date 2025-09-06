@@ -60,13 +60,27 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
         }
 
         // Combine leaderboard data with profile data
-        const combinedData = leaderboardData.map(entry => ({
-          ...entry,
-          user_profile: profilesData?.find(profile => profile.id === entry.user_id) || {
-            full_name: "Anonymous User",
-            email: ""
+        const combinedData = leaderboardData.map(entry => {
+          const userProfile = profilesData?.find(profile => profile.id === entry.user_id);
+          
+          // Generate a better display name
+          let displayName = "Anonymous User";
+          if (userProfile?.full_name && userProfile.full_name.trim()) {
+            displayName = userProfile.full_name;
+          } else if (userProfile?.email) {
+            displayName = userProfile.email.split('@')[0];
+          } else {
+            displayName = `User ${entry.user_id.slice(0, 8)}`;
           }
-        }));
+          
+          return {
+            ...entry,
+            user_profile: {
+              full_name: displayName,
+              email: userProfile?.email || ""
+            }
+          };
+        });
 
         setLeaderboard(combinedData);
       } else {
