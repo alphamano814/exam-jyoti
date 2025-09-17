@@ -55,13 +55,12 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
 
   const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
     setLoading(true);
-    console.log('Fetching questions for:', { categoryName, language, isNewSet });
+    console.log('Fetching questions for:', { categoryName, isNewSet });
     try {
       const { data: allQuestions, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('category', categoryName)
-        .eq('language', language);
+        .eq('category', categoryName);
 
       console.log('Query result:', { allQuestions, error, count: allQuestions?.length });
 
@@ -97,20 +96,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
     }
   };
 
-  // Reset state when language changes
-  useEffect(() => {
-    if (selectedCategory) {
-      setSelectedCategory(null);
-      setCurrentQuestion(0);
-      setScore(0);
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setCurrentSet(1);
-      setTotalScore(0);
-      setUsedQuestionIds([]);
-      setQuestions([]);
-    }
-  }, [language]);
+  // Remove the language-dependent reset effect since questions no longer depend on language
 
   const saveQuizResults = async () => {
     if (!user) return;

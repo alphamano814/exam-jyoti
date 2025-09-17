@@ -119,8 +119,7 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
         const { data, error } = await supabase
           .from("questions")
           .select("*")
-          .eq("category", category)
-          .eq("language", language);
+          .eq("category", category);
 
         if (error || !data || data.length === 0) {
           console.warn(`No questions found for category: ${category}`);
@@ -203,7 +202,7 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
 
   useEffect(() => {
     fetchDailyQuestions();
-  }, [language]);
+  }, []); // Removed language dependency
 
   const handleAnswerSelect = (answer: string) => {
     if (showExplanation) return;
