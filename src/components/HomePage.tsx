@@ -235,34 +235,34 @@ export const HomePage = ({ language, onNavigate }: HomePageProps) => {
               return (
                 <Card key={exam.id} className="glass hover:shadow-soft transition-smooth">
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1 flex-1">
-                        <h4 className="font-medium text-foreground nepali-text">{exam.title}</h4>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <h4 className="font-medium text-foreground nepali-text truncate">{exam.title}</h4>
                         {exam.description && (
-                          <p className="text-xs text-muted-foreground nepali-text">{exam.description}</p>
+                          <p className="text-xs text-muted-foreground nepali-text line-clamp-2">{exam.description}</p>
                         )}
-                        <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                          <div className="flex items-center gap-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-muted-foreground text-xs">
+                          <div className="flex items-center gap-1 flex-shrink-0">
                             <Calendar size={12} />
                             <span className="nepali-text">
                               {format(parseISO(exam.exam_date), 'MMM d, yyyy')}
                             </span>
                           </div>
                           {exam.exam_time && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 flex-shrink-0">
                               <Clock size={12} />
                               <span>{exam.exam_time}</span>
                             </div>
                           )}
                           {exam.venue && (
-                            <div className="flex items-center gap-1">
-                              <MapPin size={12} />
-                              <span className="nepali-text">{exam.venue}</span>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <MapPin size={12} className="flex-shrink-0" />
+                              <span className="nepali-text truncate">{exam.venue}</span>
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className={`px-2 py-1 bg-primary/10 text-xs rounded-full nepali-text ${status.color}`}>
+                      <div className={`px-2 py-1 bg-primary/10 text-xs rounded-full nepali-text self-start sm:self-center flex-shrink-0 ${status.color}`}>
                         {status.text}
                       </div>
                     </div>
