@@ -204,6 +204,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      sync_user_metadata: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_leaderboard_points: {
         Args: {
           p_correct_answers: number
