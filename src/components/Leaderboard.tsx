@@ -65,7 +65,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
           
           // Generate a better display name
           let displayName = "Anonymous User";
-          if (userProfile?.full_name && userProfile.full_name.trim()) {
+          if (userProfile?.full_name && userProfile.full_name.trim() && !userProfile.full_name.startsWith('User ')) {
             displayName = userProfile.full_name;
           } else if (userProfile?.email) {
             displayName = userProfile.email.split('@')[0];

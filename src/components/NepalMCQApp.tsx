@@ -94,7 +94,18 @@ export const NepalMCQApp = () => {
       <Header 
         language={language}
         onLanguageToggle={handleLanguageToggle}
-        username={user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+        username={(() => {
+          if (userProfile?.full_name && userProfile.full_name.trim() && !userProfile.full_name.startsWith('User ')) {
+            return userProfile.full_name;
+          } else if (user?.user_metadata?.full_name && user.user_metadata.full_name.trim()) {
+            return user.user_metadata.full_name;
+          } else if (userProfile?.email) {
+            return userProfile.email.split('@')[0];
+          } else if (user?.email) {
+            return user.email.split('@')[0];
+          }
+          return 'User';
+        })()}
         userImage={user.user_metadata?.avatar_url}
       />
       
@@ -164,7 +175,18 @@ const ProfilePage = ({ language, user, authUser, onLogout }: {
   }, [authUser?.id]);
   
   // Get full name from database profile or auth metadata
-  const fullName = user?.full_name || authUser?.user_metadata?.full_name || 'Student';
+  // Handle cases where full_name might be auto-generated fallback
+  let fullName = 'Student';
+  
+  if (user?.full_name && user.full_name.trim() && !user.full_name.startsWith('User ')) {
+    fullName = user.full_name;
+  } else if (authUser?.user_metadata?.full_name && authUser.user_metadata.full_name.trim()) {
+    fullName = authUser.user_metadata.full_name;
+  } else if (user?.email) {
+    fullName = user.email.split('@')[0];
+  } else if (authUser?.email) {
+    fullName = authUser.email.split('@')[0];
+  }
   
   return (
     <div className="space-y-6 pb-20">
