@@ -109,7 +109,7 @@ export const NepalMCQApp = () => {
         userImage={user.user_metadata?.avatar_url}
       />
       
-      <main className="px-4 py-6 max-w-md mx-auto">
+      <main className="w-full px-4 py-6 mx-auto max-w-md lg:max-w-4xl xl:max-w-6xl">
         {renderContent()}
       </main>
 
