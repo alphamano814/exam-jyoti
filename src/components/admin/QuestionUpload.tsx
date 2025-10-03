@@ -19,7 +19,6 @@ interface QuestionData {
   category: string
   subject: string
   difficulty: 'easy' | 'medium' | 'hard'
-  language: 'en' | 'ne'
 }
 
 export const QuestionUpload = () => {
@@ -32,8 +31,7 @@ export const QuestionUpload = () => {
     explanation: '',
     category: '',
     subject: '',
-    difficulty: 'medium',
-    language: 'en'
+    difficulty: 'medium'
   })
 
   const handleOptionChange = (index: number, value: string) => {
@@ -58,8 +56,7 @@ export const QuestionUpload = () => {
         explanation: questionData.explanation,
         category: questionData.category,
         subject: questionData.subject,
-        difficulty: questionData.difficulty,
-        language: questionData.language,
+        difficulty: questionData.difficulty
       };
 
       const { error } = await supabase
@@ -81,8 +78,7 @@ export const QuestionUpload = () => {
         explanation: '',
         category: '',
         subject: '',
-        difficulty: 'medium',
-        language: 'en'
+        difficulty: 'medium'
       })
     } catch (error) {
       console.error('Error uploading question:', error)
@@ -119,8 +115,7 @@ export const QuestionUpload = () => {
           explanation: values[6] || '',
           category: values[7] || '',
           subject: values[8] || '',
-          difficulty: (values[9] as 'easy' | 'medium' | 'hard') || 'medium',
-          language: values[10] || 'en',
+          difficulty: (values[9] as 'easy' | 'medium' | 'hard') || 'medium'
         }
       })
 
@@ -209,18 +204,6 @@ export const QuestionUpload = () => {
                   </Select>
                 </div>
 
-                <div>
-                  <Label>Language</Label>
-                  <Select value={questionData.language} onValueChange={(value: 'en' | 'ne') => setQuestionData({ ...questionData, language: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="ne">Nepali</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div>
@@ -298,7 +281,7 @@ export const QuestionUpload = () => {
             <div className="space-y-4">
               <Alert>
                 <AlertDescription>
-                  CSV Format: Question, Option1, Option2, Option3, Option4, CorrectAnswerIndex (0-3), Explanation, Category, Subject, Difficulty, Language
+                  CSV Format: Question, Option1, Option2, Option3, Option4, CorrectAnswerIndex (0-3), Explanation, Category, Subject, Difficulty
                 </AlertDescription>
               </Alert>
 
@@ -316,7 +299,7 @@ export const QuestionUpload = () => {
               <div className="text-sm text-muted-foreground">
                 <p><strong>Sample CSV format:</strong></p>
                 <code className="block mt-2 p-2 bg-muted rounded text-xs">
-                  "What is 2+2?","2","3","4","5",2,"Addition of two numbers","mathematics","Basic Math","easy","en"
+                  "What is 2+2?","2","3","4","5",2,"Addition of two numbers","mathematics","Basic Math","easy"
                 </code>
               </div>
             </div>
