@@ -12,10 +12,7 @@ interface LeaderboardEntry {
   daily_quiz_points: number;
   total_quizzes_completed: number;
   total_daily_quizzes_completed: number;
-  user_profile?: {
-    full_name: string;
-    email: string;
-  };
+  display_name: string;
 }
 
 interface LeaderboardProps {
@@ -35,7 +32,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
     try {
       setLoading(true);
       
-      // First get leaderboard data
       const { data: leaderboardData, error: leaderboardError } = await supabase
         .from("leaderboard")
         .select("*")
@@ -46,46 +42,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
         throw leaderboardError;
       }
 
-      // Then get user profiles for the leaderboard entries
-      if (leaderboardData && leaderboardData.length > 0) {
-        const userIds = leaderboardData.map(entry => entry.user_id);
-        
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("users")
-          .select("id, full_name, email")
-          .in("id", userIds);
-
-        if (profilesError) {
-          console.warn("Could not fetch user profiles:", profilesError);
-        }
-
-        // Combine leaderboard data with profile data
-        const combinedData = leaderboardData.map(entry => {
-          const userProfile = profilesData?.find(profile => profile.id === entry.user_id);
-          
-          // Generate a better display name
-          let displayName = "Anonymous User";
-          if (userProfile?.full_name && userProfile.full_name.trim() && !userProfile.full_name.startsWith('User ')) {
-            displayName = userProfile.full_name;
-          } else if (userProfile?.email) {
-            displayName = userProfile.email.split('@')[0];
-          } else {
-            displayName = `User ${entry.user_id.slice(0, 8)}`;
-          }
-          
-          return {
-            ...entry,
-            user_profile: {
-              full_name: displayName,
-              email: userProfile?.email || ""
-            }
-          };
-        });
-
-        setLeaderboard(combinedData);
-      } else {
-        setLeaderboard([]);
-      }
+      setLeaderboard(leaderboardData || []);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
       toast({
@@ -199,9 +156,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
         <div className="space-y-3">
           {leaderboard.map((entry, index) => {
             const rank = index + 1;
-            const displayName = entry.user_profile?.full_name || 
-              entry.user_profile?.email?.split('@')[0] || 
-              `User ${rank}`;
 
             return (
               <Card key={entry.user_id} className="glass">
@@ -216,7 +170,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
                       </div>
                       
                       <div>
-                        <h3 className="font-medium">{displayName}</h3>
+                        <h3 className="font-medium">{entry.display_name || `User ${rank}`}</h3>
                         <div className="text-sm text-muted-foreground">
                           {language === "en" ? "Quizzes: " : "क्विजहरू: "}
                           {entry.total_quizzes_completed + entry.total_daily_quizzes_completed}

@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           daily_quiz_points: number
+          display_name: string | null
           id: string
           quiz_points: number
           total_daily_quizzes_completed: number
@@ -29,6 +30,7 @@ export type Database = {
         Insert: {
           created_at?: string
           daily_quiz_points?: number
+          display_name?: string | null
           id?: string
           quiz_points?: number
           total_daily_quizzes_completed?: number
@@ -40,6 +42,7 @@ export type Database = {
         Update: {
           created_at?: string
           daily_quiz_points?: number
+          display_name?: string | null
           id?: string
           quiz_points?: number
           total_daily_quizzes_completed?: number
@@ -204,6 +207,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_display_name: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       sync_user_metadata: {
         Args: Record<PropertyKey, never>
         Returns: undefined
