@@ -12,7 +12,7 @@ interface LeaderboardEntry {
   daily_quiz_points: number;
   total_quizzes_completed: number;
   total_daily_quizzes_completed: number;
-  display_name: string;
+  display_name?: string;
 }
 
 interface LeaderboardProps {
@@ -156,6 +156,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
         <div className="space-y-3">
           {leaderboard.map((entry, index) => {
             const rank = index + 1;
+            const displayName = entry.display_name || `User ${rank}`;
 
             return (
               <Card key={entry.user_id} className="glass">
@@ -170,7 +171,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
                       </div>
                       
                       <div>
-                        <h3 className="font-medium">{entry.display_name || `User ${rank}`}</h3>
+                        <h3 className="font-medium">{displayName}</h3>
                         <div className="text-sm text-muted-foreground">
                           {language === "en" ? "Quizzes: " : "क्विजहरू: "}
                           {entry.total_quizzes_completed + entry.total_daily_quizzes_completed}
