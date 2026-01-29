@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { supabase } from '@/integrations/supabase/client'
-import { Edit, Trash2, Eye, Search } from 'lucide-react'
+import { Edit, Trash2, Search } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface Question {
@@ -33,6 +34,8 @@ export const QuestionManagement = () => {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isDeleting, setIsDeleting] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -48,6 +51,7 @@ export const QuestionManagement = () => {
 
       if (error) throw error
       setQuestions(data || [])
+      setSelectedIds(new Set()) // Clear selection after refresh
     } catch (error) {
       console.error('Error fetching questions:', error)
       toast({
@@ -140,6 +144,60 @@ export const QuestionManagement = () => {
     }
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredQuestions.map(q => q.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds)
+    if (checked) {
+      newSelected.add(id)
+    } else {
+      newSelected.delete(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+
+    const confirmed = confirm(`Are you sure you want to delete ${selectedIds.size} question(s)?`)
+    if (!confirmed) return
+
+    setIsDeleting(true)
+    try {
+      const { error } = await supabase
+        .from('questions')
+        .delete()
+        .in('id', Array.from(selectedIds))
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: `${selectedIds.size} question(s) deleted successfully`
+      })
+
+      fetchQuestions()
+    } catch (error) {
+      console.error('Error deleting questions:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete questions",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const isAllSelected = filteredQuestions.length > 0 && filteredQuestions.every(q => selectedIds.has(q.id))
+  const isSomeSelected = filteredQuestions.some(q => selectedIds.has(q.id))
+
   if (loading) {
     return <div className="flex justify-center p-8">Loading questions...</div>
   }
@@ -148,7 +206,20 @@ export const QuestionManagement = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Question Management</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle>Question Management</CardTitle>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Selected ({selectedIds.size})
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters */}
@@ -171,7 +242,7 @@ export const QuestionManagement = () => {
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {uniqueCategories.map((category) => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                  <SelectItem key={category} value={category!}>{category}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -182,6 +253,14 @@ export const QuestionManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                      className={isSomeSelected && !isAllSelected ? "opacity-50" : ""}
+                    />
+                  </TableHead>
                   <TableHead>Question</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Difficulty</TableHead>
@@ -191,7 +270,14 @@ export const QuestionManagement = () => {
               </TableHeader>
               <TableBody>
                 {filteredQuestions.map((question) => (
-                  <TableRow key={question.id}>
+                  <TableRow key={question.id} className={selectedIds.has(question.id) ? "bg-muted/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(question.id)}
+                        onCheckedChange={(checked) => handleSelectOne(question.id, checked as boolean)}
+                        aria-label={`Select question ${question.id}`}
+                      />
+                    </TableCell>
                     <TableCell className="max-w-md">
                       <div className="truncate" title={question.question}>
                         {question.question}
