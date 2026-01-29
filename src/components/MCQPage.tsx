@@ -75,13 +75,13 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
           setUsedQuestionIds([]);
           const randomQuestions = [...allQuestions]
             .sort(() => Math.random() - 0.5)
-            .slice(0, 10);
+            .slice(0, 50);
           setQuestions(randomQuestions);
           setUsedQuestionIds(randomQuestions.map(q => q.id));
         } else {
           const randomQuestions = [...availableQuestions]
             .sort(() => Math.random() - 0.5)
-            .slice(0, 10);
+            .slice(0, 50);
           setQuestions(randomQuestions);
           setUsedQuestionIds(prev => [...prev, ...randomQuestions.map(q => q.id)]);
         }
@@ -217,7 +217,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
     // Show scorecard when quiz is completed
     if (showScorecard) {
       const finalScore = totalScore;
-      const percentage = Math.round((finalScore / 10) * 100);
+      const percentage = Math.round((finalScore / questions.length) * 100);
       
       return (
         <div className="text-center space-y-6 pb-20">
@@ -230,7 +230,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
                 </h2>
                 <div className="text-center space-y-2">
                   <div className="text-6xl font-bold text-primary">
-                    {finalScore}/10
+                    {finalScore}/{questions.length}
                   </div>
                   <p className="text-xl text-muted-foreground">
                     {language === "en" ? `${percentage}% Correct` : `${percentage}% सही`}

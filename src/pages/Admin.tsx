@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAdmin } from '@/hooks/useAdmin'
 import { AdminLogin } from '@/components/admin/AdminLogin'
@@ -10,6 +11,11 @@ import { Link } from 'react-router-dom'
 const Admin = () => {
   const { user, loading } = useAuth()
   const { isAdmin, isAdminLoggedIn } = useAdmin()
+  const [loginSuccess, setLoginSuccess] = useState(false)
+
+  const handleLoginSuccess = useCallback(() => {
+    setLoginSuccess(true)
+  }, [])
 
   if (loading) {
     return (
@@ -80,8 +86,8 @@ const Admin = () => {
     )
   }
 
-  if (!isAdminLoggedIn) {
-    return <AdminLogin onSuccess={() => window.location.reload()} />
+  if (!isAdminLoggedIn && !loginSuccess) {
+    return <AdminLogin onSuccess={handleLoginSuccess} />
   }
 
   return <AdminDashboard />
