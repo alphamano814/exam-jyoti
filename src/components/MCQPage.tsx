@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { BookOpen, Trophy, Clock, CheckCircle, XCircle, Bookmark, ArrowLeft } fr
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuestionsByCategory } from "@/hooks/useQuestions";
 
 interface MCQPageProps {
   language: "en" | "np";
@@ -39,62 +40,39 @@ const categories = {
 
 export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [currentSet, setCurrentSet] = useState(1);
   const [totalScore, setTotalScore] = useState(0);
   const [usedQuestionIds, setUsedQuestionIds] = useState<string[]>([]);
   const [showScorecard, setShowScorecard] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [shuffleSeed, setShuffleSeed] = useState(Date.now());
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchQuestions = async (categoryName: string, isNewSet: boolean = false) => {
-    setLoading(true);
-    console.log('Fetching questions for:', { categoryName, isNewSet });
-    try {
-      const { data: allQuestions, error } = await supabase
-        .from('questions')
-        .select('*')
-        .eq('category', categoryName);
+  // Use cached React Query hook instead of manual fetching
+  const { data: categoryQuestions = [], isLoading: loading } = useQuestionsByCategory(selectedCategoryName);
 
-      console.log('Query result:', { allQuestions, error, count: allQuestions?.length });
-
-      if (error) throw error;
-      
-      if (allQuestions && allQuestions.length > 0) {
-        const availableQuestions = isNewSet 
-          ? allQuestions.filter(q => !usedQuestionIds.includes(q.id))
-          : allQuestions;
-        
-        if (availableQuestions.length === 0) {
-          setUsedQuestionIds([]);
-          const randomQuestions = [...allQuestions]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 50);
-          setQuestions(randomQuestions);
-          setUsedQuestionIds(randomQuestions.map(q => q.id));
-        } else {
-          const randomQuestions = [...availableQuestions]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 50);
-          setQuestions(randomQuestions);
-          setUsedQuestionIds(prev => [...prev, ...randomQuestions.map(q => q.id)]);
-        }
-      } else {
-        setQuestions([]);
-      }
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-      setQuestions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Memoize shuffled questions to avoid re-shuffling on every render
+  const questions = useMemo(() => {
+    if (categoryQuestions.length === 0) return [];
+    
+    const availableQuestions = categoryQuestions.filter(q => !usedQuestionIds.includes(q.id));
+    const questionsToShuffle = availableQuestions.length > 0 ? availableQuestions : categoryQuestions;
+    
+    // Use shuffleSeed to create deterministic but controllable randomization
+    const shuffled = [...questionsToShuffle].sort((a, b) => {
+      const hashA = a.id.charCodeAt(0) + shuffleSeed;
+      const hashB = b.id.charCodeAt(0) + shuffleSeed;
+      return hashA - hashB;
+    });
+    
+    return shuffled.slice(0, 50);
+  }, [categoryQuestions, usedQuestionIds, shuffleSeed]);
 
   // Remove the language-dependent reset effect since questions no longer depend on language
 
@@ -139,14 +117,18 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
   };
 
   const startNewSet = () => {
-    const categoryName = categories[language].find(cat => cat.id === selectedCategory)?.name;
-    if (categoryName) {
-      fetchQuestions(categoryName, true);
-    }
+    // Reset used questions and trigger a new shuffle
+    setUsedQuestionIds(prev => [...prev, ...questions.map(q => q.id)]);
+    setShuffleSeed(Date.now());
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
   };
 
   const goBack = () => {
     setSelectedCategory(null);
+    setSelectedCategoryName(null);
     setCurrentQuestion(0);
     setScore(0);
     setSelectedAnswer(null);
@@ -154,6 +136,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
     setCurrentSet(1);
     setTotalScore(0);
     setUsedQuestionIds([]);
+    setShuffleSeed(Date.now());
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -393,7 +376,7 @@ export const MCQPage = ({ language, onNavigate }: MCQPageProps) => {
             className="glass hover:shadow-nepal transition-smooth cursor-pointer group"
             onClick={() => {
               setSelectedCategory(category.id);
-              fetchQuestions(category.name);
+              setSelectedCategoryName(category.name);
             }}
           >
             <CardContent className="p-6">
