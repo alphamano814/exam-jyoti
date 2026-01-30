@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -7,18 +7,7 @@ import { Calendar, Clock, Trophy, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface Question {
-  id: string;
-  question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_option: string;
-  explanation?: string;
-  category: string;
-}
+import { useDailyQuizQuestions, type Question } from "@/hooks/useQuestions";
 
 interface DailyQuizProps {
   language: "en" | "np";
@@ -73,17 +62,64 @@ const getDeterministicRandom = (seed: string) => {
 };
 
 export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [score, setScore] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [quizStarted, setQuizStarted] = useState(false);
   const [timeToNext, setTimeToNext] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Use cached query - single fetch instead of 9 separate queries
+  const { data: allQuestions = [], isLoading: loading, refetch } = useDailyQuizQuestions();
+
+  // Memoize the daily questions selection
+  const questions = useMemo(() => {
+    if (allQuestions.length === 0) return [];
+    
+    const dailyKey = getDailyQuizKey();
+    const selectedQuestions: Question[] = [];
+
+    // Group questions by category
+    const questionsByCategory: Record<string, Question[]> = {};
+    allQuestions.forEach(q => {
+      const cat = q.category || 'general';
+      if (!questionsByCategory[cat]) questionsByCategory[cat] = [];
+      questionsByCategory[cat].push(q);
+    });
+
+    // Get 1 question from each category (2 from nepal-history)
+    for (const category of categories) {
+      const categoryQuestions = questionsByCategory[category] || [];
+      if (categoryQuestions.length === 0) continue;
+
+      const questionsToFetch = category === "nepal-history" ? 2 : 1;
+      
+      for (let i = 0; i < questionsToFetch; i++) {
+        const seed = `${dailyKey}-${category}-${i}`;
+        const randomValue = getDeterministicRandom(seed);
+        const questionIndex = Math.floor(randomValue * categoryQuestions.length);
+        
+        const question = categoryQuestions[questionIndex];
+        if (question && !selectedQuestions.find(q => q.id === question.id)) {
+          selectedQuestions.push(question);
+        }
+      }
+    }
+
+    // Shuffle the final questions deterministically
+    const shuffledQuestions = [...selectedQuestions];
+    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+      const seed = `${dailyKey}-shuffle-${i}`;
+      const randomValue = getDeterministicRandom(seed);
+      const j = Math.floor(randomValue * (i + 1));
+      [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+    }
+
+    return shuffledQuestions.slice(0, 10);
+  }, [allQuestions]);
 
   // Calculate time until next quiz (midnight)
   useEffect(() => {
@@ -105,60 +141,6 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
     
     return () => clearInterval(interval);
   }, []);
-
-  const fetchDailyQuestions = async () => {
-    try {
-      setLoading(true);
-      const dailyKey = getDailyQuizKey();
-      const selectedQuestions: Question[] = [];
-
-      // Get 1 question from each category (2 from nepal-history)
-      for (const category of categories) {
-        const questionsToFetch = category === "nepal-history" ? 2 : 1;
-        
-        const { data, error } = await supabase
-          .from("questions")
-          .select("*")
-          .eq("category", category);
-
-        if (error || !data || data.length === 0) {
-          console.warn(`No questions found for category: ${category}`);
-          continue;
-        }
-
-        // Use deterministic selection based on date + category
-        for (let i = 0; i < questionsToFetch; i++) {
-          const seed = `${dailyKey}-${category}-${i}`;
-          const randomValue = getDeterministicRandom(seed);
-          const questionIndex = Math.floor(randomValue * data.length);
-          
-          if (data[questionIndex] && !selectedQuestions.find(q => q.id === data[questionIndex].id)) {
-            selectedQuestions.push(data[questionIndex]);
-          }
-        }
-      }
-
-      // Shuffle the final questions deterministically
-      const shuffledQuestions = [...selectedQuestions];
-      for (let i = shuffledQuestions.length - 1; i > 0; i--) {
-        const seed = `${dailyKey}-shuffle-${i}`;
-        const randomValue = getDeterministicRandom(seed);
-        const j = Math.floor(randomValue * (i + 1));
-        [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
-      }
-
-      setQuestions(shuffledQuestions.slice(0, 10)); // Ensure exactly 10 questions
-    } catch (error) {
-      console.error("Error fetching daily questions:", error);
-      toast({
-        title: language === "en" ? "Error" : "त्रुटि",
-        description: language === "en" ? "Failed to load daily quiz" : "दैनिक क्विज लोड गर्न असफल",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const saveDailyQuizResults = async () => {
     if (!user) return;
@@ -199,10 +181,6 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
       });
     }
   };
-
-  useEffect(() => {
-    fetchDailyQuestions();
-  }, []); // Removed language dependency
 
   const handleAnswerSelect = (answer: string) => {
     if (showExplanation) return;
@@ -288,7 +266,7 @@ export const DailyQuiz: React.FC<DailyQuizProps> = ({ language }) => {
                       : "आजको क्विजको लागि पर्याप्त प्रश्नहरू उपलब्ध छैनन्"}
                   </p>
                   <Button 
-                    onClick={fetchDailyQuestions}
+                    onClick={() => refetch()}
                     variant="outline"
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
