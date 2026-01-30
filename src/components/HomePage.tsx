@@ -1,10 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Calendar, Trophy, Users, Clock, MapPin } from "lucide-react";
-import { useUpcomingExams } from "@/hooks/useUpcomingExams";
+import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isPast, isToday, isTomorrow } from 'date-fns';
 import heroBanner from "@/assets/hero-banner.jpg";
+
+interface UpcomingExam {
+  id: string
+  title: string
+  description: string | null
+  exam_date: string
+  exam_time: string | null
+  venue: string | null
+}
 
 interface HomePageProps {
   language: "en" | "np";
@@ -43,27 +52,60 @@ const quickActions = {
 
 
 export const HomePage = ({ language, onNavigate }: HomePageProps) => {
-  const { data: upcomingExams = [], isLoading: loadingExams } = useUpcomingExams(3);
+  const [upcomingExams, setUpcomingExams] = useState<UpcomingExam[]>([])
+  const [loadingExams, setLoadingExams] = useState(true)
   
-  // Memoize the quote to prevent re-calculation on every render
-  const currentQuote = useMemo(() => 
-    motivationalQuotes[language][Math.floor(Math.random() * motivationalQuotes[language].length)],
-    [language]
-  );
+  const currentQuote = motivationalQuotes[language][Math.floor(Math.random() * motivationalQuotes[language].length)];
+
+  useEffect(() => {
+    fetchUpcomingExams()
+    
+    // Set up real-time subscription for exam updates
+    const subscription = supabase
+      .channel('home_exams_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'upcoming_exams' }, 
+        () => {
+          fetchUpcomingExams()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const fetchUpcomingExams = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('upcoming_exams')
+        .select('*')
+        .order('exam_date', { ascending: true })
+        .limit(3) // Only show first 3 exams on home page
+
+      if (error) throw error
+      setUpcomingExams(data || [])
+    } catch (error) {
+      console.error('Error fetching upcoming exams:', error)
+    } finally {
+      setLoadingExams(false)
+    }
+  }
 
   const getExamStatus = (examDate: string) => {
-    const date = parseISO(examDate);
+    const date = parseISO(examDate)
     
     if (isPast(date)) {
-      return { text: language === "en" ? "Past" : "बितेको", color: "text-muted-foreground" };
+      return { text: language === "en" ? "Past" : "बितेको", color: "text-muted-foreground" }
     } else if (isToday(date)) {
-      return { text: language === "en" ? "Today" : "आज", color: "text-destructive" };
+      return { text: language === "en" ? "Today" : "आज", color: "text-destructive" }
     } else if (isTomorrow(date)) {
-      return { text: language === "en" ? "Tomorrow" : "भोलि", color: "text-warning" };
+      return { text: language === "en" ? "Tomorrow" : "भोलि", color: "text-warning" }
     } else {
-      return { text: language === "en" ? "Upcoming" : "आगामी", color: "text-success" };
+      return { text: language === "en" ? "Upcoming" : "आगामी", color: "text-success" }
     }
-  };
+  }
 
   return (
     <div className="space-y-6 pb-20">
@@ -189,7 +231,7 @@ export const HomePage = ({ language, onNavigate }: HomePageProps) => {
         ) : (
           <div className="space-y-3">
             {upcomingExams.map((exam) => {
-              const status = getExamStatus(exam.exam_date);
+              const status = getExamStatus(exam.exam_date)
               return (
                 <Card key={exam.id} className="glass hover:shadow-soft transition-smooth">
                   <CardContent className="p-4">
@@ -226,7 +268,7 @@ export const HomePage = ({ language, onNavigate }: HomePageProps) => {
                     </div>
                   </CardContent>
                 </Card>
-              );
+              )
             })}
           </div>
         )}

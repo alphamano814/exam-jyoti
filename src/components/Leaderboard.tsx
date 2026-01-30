@@ -1,15 +1,59 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Crown, Medal, Award } from "lucide-react";
-import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface LeaderboardEntry {
+  user_id: string;
+  total_points: number;
+  quiz_points: number;
+  daily_quiz_points: number;
+  total_quizzes_completed: number;
+  total_daily_quizzes_completed: number;
+  display_name?: string;
+}
 
 interface LeaderboardProps {
   language: "en" | "np";
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
-  const { data: leaderboard = [], isLoading: loading, error } = useLeaderboard();
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      setLoading(true);
+      
+      const { data: leaderboardData, error: leaderboardError } = await supabase
+        .from("leaderboard")
+        .select("*")
+        .order("total_points", { ascending: false })
+        .limit(50);
+
+      if (leaderboardError) {
+        throw leaderboardError;
+      }
+
+      setLeaderboard(leaderboardData || []);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      toast({
+        title: language === "en" ? "Error" : "त्रुटि",
+        description: language === "en" ? "Failed to load leaderboard" : "लिडरबोर्ड लोड गर्न असफल",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -45,20 +89,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ language }) => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="text-center mt-4">
               {language === "en" ? "Loading leaderboard..." : "लिडरबोर्ड लोड हुँदै..."}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-4 pb-20">
-        <Card className="glass">
-          <CardContent className="p-6 text-center">
-            <p className="text-destructive">
-              {language === "en" ? "Failed to load leaderboard" : "लिडरबोर्ड लोड गर्न असफल"}
             </p>
           </CardContent>
         </Card>
