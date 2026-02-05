@@ -8,6 +8,7 @@ import { useAdmin } from '@/hooks/useAdmin'
 import { QuestionUpload } from './QuestionUpload'
 import { QuestionManagement } from './QuestionManagement'
 import { ExamManagement } from './ExamManagement'
+import { UserManagement } from './UserManagement'
 import { LogOut, BookOpen, Users, TrendingUp, Plus } from 'lucide-react'
 
 interface AdminStats {
@@ -166,15 +167,7 @@ export const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage registered users and their progress</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">User management features coming soon...</p>
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
         </Tabs>
       </div>
